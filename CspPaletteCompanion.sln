@@ -1,0 +1,42 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Core", "src\CspPaletteCompanion.Core\CspPaletteCompanion.Core.csproj", "{9F6D6927-17F8-439B-98F1-5F28D9326FE8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.App", "src\CspPaletteCompanion.App\CspPaletteCompanion.App.csproj", "{04D28778-A668-4A80-9001-9EB8FA0F94B4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Core.Tests", "tests\CspPaletteCompanion.Core.Tests\CspPaletteCompanion.Core.Tests.csproj", "{336A2522-F58A-4B37-9814-791CE5B59FDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Companion", "src\CspPaletteCompanion.Companion\CspPaletteCompanion.Companion.csproj", "{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Companion.Tests", "tests\CspPaletteCompanion.Companion.Tests\CspPaletteCompanion.Companion.Tests.csproj", "{D5B14022-504E-438C-94F1-2D2069421985}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{9F6D6927-17F8-439B-98F1-5F28D9326FE8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F6D6927-17F8-439B-98F1-5F28D9326FE8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F6D6927-17F8-439B-98F1-5F28D9326FE8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F6D6927-17F8-439B-98F1-5F28D9326FE8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{04D28778-A668-4A80-9001-9EB8FA0F94B4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{04D28778-A668-4A80-9001-9EB8FA0F94B4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{04D28778-A668-4A80-9001-9EB8FA0F94B4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{04D28778-A668-4A80-9001-9EB8FA0F94B4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{336A2522-F58A-4B37-9814-791CE5B59FDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{336A2522-F58A-4B37-9814-791CE5B59FDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{336A2522-F58A-4B37-9814-791CE5B59FDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{336A2522-F58A-4B37-9814-791CE5B59FDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5B14022-504E-438C-94F1-2D2069421985}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5B14022-504E-438C-94F1-2D2069421985}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5B14022-504E-438C-94F1-2D2069421985}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5B14022-504E-438C-94F1-2D2069421985}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

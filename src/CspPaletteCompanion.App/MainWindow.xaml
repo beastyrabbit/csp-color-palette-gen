@@ -1,0 +1,330 @@
+<Window x:Class="CspPaletteCompanion.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:automation="clr-namespace:System.Windows.Automation;assembly=PresentationCore"
+        Title="CSP Palette Companion"
+        Width="440"
+        Height="540"
+        MinWidth="400"
+        MinHeight="480"
+        ResizeMode="CanResize"
+        WindowStartupLocation="CenterScreen"
+        Topmost="True"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True">
+  <Grid Background="{StaticResource WindowBrush}">
+    <Grid.RowDefinitions>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="Auto"/>
+      <RowDefinition Height="*"/>
+    </Grid.RowDefinitions>
+
+    <Grid Grid.Row="0" Margin="20,18,20,0">
+      <Grid.ColumnDefinitions>
+        <ColumnDefinition Width="*"/>
+        <ColumnDefinition Width="Auto"/>
+      </Grid.ColumnDefinitions>
+      <StackPanel>
+        <TextBlock FontSize="20"
+                   FontWeight="SemiBold"
+                   Foreground="{StaticResource TextBrush}"
+                   Text="Palette Companion"/>
+        <TextBlock Margin="0,3,0,0"
+                   Style="{StaticResource QuietTextStyle}"
+                   Text="Build a focused Color Set from your CSP artwork."/>
+      </StackPanel>
+      <Border Grid.Column="1"
+              Margin="12,1,0,0"
+              Padding="9,5"
+              HorizontalAlignment="Right"
+              VerticalAlignment="Top"
+              Background="{StaticResource PanelBrush}"
+              BorderBrush="{StaticResource BorderBrush}"
+              BorderThickness="1"
+              CornerRadius="12">
+        <DockPanel>
+          <Ellipse x:Name="ConnectionDot"
+                   Width="8"
+                   Height="8"
+                   Margin="0,0,7,0"
+                   Fill="{StaticResource ErrorBrush}"
+                   VerticalAlignment="Center"/>
+          <TextBlock x:Name="ConnectionText"
+                     MaxWidth="128"
+                     FontSize="11"
+                     Foreground="{StaticResource MutedBrush}"
+                     Text="Checking for CSP…"
+                     TextTrimming="CharacterEllipsis"
+                     TextWrapping="NoWrap"
+                     VerticalAlignment="Center"
+                     automation:AutomationProperties.LiveSetting="Polite"/>
+        </DockPanel>
+      </Border>
+    </Grid>
+
+    <Border Grid.Row="1"
+            Margin="20,14,20,0"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="0,0,0,1"/>
+
+    <ScrollViewer Grid.Row="2"
+                  Margin="0,1,0,0"
+                  HorizontalScrollBarVisibility="Disabled"
+                  VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="20,16,20,20">
+        <Border x:Name="ConnectionPanel"
+                Margin="0,0,0,16"
+                Padding="12,10"
+                Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource ErrorBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+          <Grid>
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="12"/>
+              <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+            <StackPanel>
+              <TextBlock x:Name="ConnectionHeading"
+                         FontSize="12"
+                         FontWeight="SemiBold"
+                         Text="Connect for direct Canvas access"/>
+              <TextBlock x:Name="ConnectionInstructions"
+                         Margin="0,4,0,0"
+                         FontSize="11"
+                         Foreground="{StaticResource MutedBrush}"
+                         LineHeight="16"
+                         Text="In CSP, open “Connect to smartphone,” leave the QR visible, then select Connect."
+                         automation:AutomationProperties.LiveSetting="Polite"/>
+            </StackPanel>
+            <Button x:Name="ConnectButton"
+                    Grid.Column="2"
+                    Style="{StaticResource CompactButtonStyle}"
+                    VerticalAlignment="Center"
+                    Click="ConnectButton_Click"
+                    Content="Connect"
+                    automation:AutomationProperties.Name="Connect to CSP Companion Mode"
+                    automation:AutomationProperties.HelpText="Open Connect to smartphone in CSP and leave its QR code visible."/>
+          </Grid>
+        </Border>
+
+        <TextBlock Style="{StaticResource SectionLabelStyle}" Text="SOURCE"/>
+        <UniformGrid Margin="0,8,0,0" Columns="2" Rows="2">
+          <RadioButton x:Name="CanvasSource"
+                       Margin="0,0,4,4"
+                       Content="Canvas"
+                       GroupName="Source"
+                       IsChecked="True"
+                       Style="{StaticResource SegmentRadioStyle}"
+                       Checked="Source_Checked"/>
+          <RadioButton x:Name="LayerSource"
+                       Margin="4,0,0,4"
+                       Content="Layer"
+                       GroupName="Source"
+                       Style="{StaticResource SegmentRadioStyle}"
+                       Checked="Source_Checked"/>
+          <RadioButton x:Name="SelectionCanvasSource"
+                       Margin="0,4,4,0"
+                       Content="Selection · Canvas"
+                       GroupName="Source"
+                       Style="{StaticResource SegmentRadioStyle}"
+                       Checked="Source_Checked"/>
+          <RadioButton x:Name="SelectionLayerSource"
+                       Margin="4,4,0,0"
+                       Content="Selection · Layer"
+                       GroupName="Source"
+                       Style="{StaticResource SegmentRadioStyle}"
+                       Checked="Source_Checked"/>
+        </UniformGrid>
+        <TextBlock x:Name="SourceHelp"
+                   Margin="0,8,0,0"
+                   MinHeight="36"
+                   Style="{StaticResource QuietTextStyle}"
+                   Text="Uses a merged image already copied from CSP."/>
+        <Button x:Name="CheckActionButton"
+                Margin="0,8,0,0"
+                HorizontalAlignment="Left"
+                Style="{StaticResource SecondaryButtonStyle}"
+                Visibility="Collapsed"
+                Click="CheckActionButton_Click"
+                Content="Check CSP Action"
+                automation:AutomationProperties.Name="Check merged selection action in CSP Quick Access"
+                automation:AutomationProperties.HelpText="Checks whether CSP exposes a compatible merged-selection Auto Action through Quick Access."/>
+
+        <Grid Margin="0,18,0,0">
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="16"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+
+          <StackPanel Grid.Column="0">
+            <Label x:Name="MajorLabel"
+                   Padding="0"
+                   Foreground="{StaticResource MutedBrush}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Target="{Binding ElementName=MajorCount}"
+                   Content="Major colors"/>
+            <Grid Margin="0,7,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="34"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="34"/>
+              </Grid.ColumnDefinitions>
+              <Button Grid.Column="0"
+                      Style="{StaticResource StepperButtonStyle}"
+                      Click="DecreaseMajor_Click"
+                      Content="−"
+                      automation:AutomationProperties.Name="Decrease major colors"/>
+              <TextBox x:Name="MajorCount"
+                       Grid.Column="1"
+                       Margin="6,0"
+                       MaxLength="2"
+                       Text="6"
+                       automation:AutomationProperties.Name="Major color count"/>
+              <Button Grid.Column="2"
+                      Style="{StaticResource StepperButtonStyle}"
+                      Click="IncreaseMajor_Click"
+                      Content="+"
+                      automation:AutomationProperties.Name="Increase major colors"/>
+            </Grid>
+          </StackPanel>
+
+          <StackPanel Grid.Column="2">
+            <Label x:Name="MinorLabel"
+                   Padding="0"
+                   Foreground="{StaticResource MutedBrush}"
+                   FontSize="12"
+                   FontWeight="SemiBold"
+                   Target="{Binding ElementName=MinorCount}"
+                   Content="Minor colors"/>
+            <Grid Margin="0,7,0,0">
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="34"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="34"/>
+              </Grid.ColumnDefinitions>
+              <Button Grid.Column="0"
+                      Style="{StaticResource StepperButtonStyle}"
+                      Click="DecreaseMinor_Click"
+                      Content="−"
+                      automation:AutomationProperties.Name="Decrease minor colors"/>
+              <TextBox x:Name="MinorCount"
+                       Grid.Column="1"
+                       Margin="6,0"
+                       MaxLength="2"
+                       Text="6"
+                       automation:AutomationProperties.Name="Minor color count"/>
+              <Button Grid.Column="2"
+                      Style="{StaticResource StepperButtonStyle}"
+                      Click="IncreaseMinor_Click"
+                      Content="+"
+                      automation:AutomationProperties.Name="Increase minor colors"/>
+            </Grid>
+          </StackPanel>
+        </Grid>
+
+        <Button x:Name="ExtractButton"
+                Margin="0,20,0,0"
+                Style="{StaticResource PrimaryButtonStyle}"
+                IsDefault="True"
+                Click="ExtractButton_Click"
+                Content="Extract Palette"
+                automation:AutomationProperties.Name="Extract palette"/>
+
+        <Border x:Name="StatusPanel"
+                Margin="0,16,0,0"
+                Padding="14"
+                Background="{StaticResource PanelBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="8">
+          <StackPanel>
+            <DockPanel LastChildFill="True">
+              <Ellipse x:Name="StatusDot"
+                       Width="8"
+                       Height="8"
+                       Margin="0,1,9,0"
+                       Fill="{StaticResource SubtleBrush}"
+                       VerticalAlignment="Center"/>
+              <TextBlock x:Name="StatusText"
+                         FontWeight="SemiBold"
+                         Text="Ready"
+                         automation:AutomationProperties.LiveSetting="Polite"/>
+            </DockPanel>
+            <TextBlock x:Name="DetailText"
+                       Margin="17,5,0,0"
+                       Style="{StaticResource QuietTextStyle}"
+                       Text="Your image and generated palette stay on this computer."
+                       automation:AutomationProperties.LiveSetting="Polite"/>
+            <ProgressBar x:Name="BusyIndicator"
+                         Margin="17,11,0,0"
+                         Height="3"
+                         IsIndeterminate="True"
+                         Visibility="Collapsed"
+                         Foreground="{StaticResource AccentBrush}"
+                         Background="{StaticResource SurfaceBrush}"/>
+
+            <WrapPanel x:Name="PalettePreview" Margin="17,12,0,0"/>
+
+            <Button x:Name="PaletteDragChip"
+                    Margin="17,12,0,0"
+                    Style="{StaticResource DragHandoffButtonStyle}"
+                    Visibility="Collapsed"
+                    PreviewMouseLeftButtonDown="PaletteDragChip_MouseLeftButtonDown"
+                    PreviewMouseMove="PaletteDragChip_MouseMove"
+                    KeyDown="PaletteDragChip_KeyDown"
+                    automation:AutomationProperties.Name="Palette file. Drag onto the Clip Studio Paint Color Set palette.">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto"/>
+                  <ColumnDefinition Width="*"/>
+                  <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Border Width="28"
+                        Height="28"
+                        Background="{StaticResource AccentBrush}"
+                        CornerRadius="5">
+                  <TextBlock HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             FontSize="16"
+                             FontWeight="Bold"
+                             Foreground="{StaticResource AccentTextBrush}"
+                             Text="↗"/>
+                </Border>
+                <StackPanel Grid.Column="1" Margin="10,0,8,0" VerticalAlignment="Center">
+                  <TextBlock FontWeight="SemiBold" Text="Drop this onto the Color Set palette"/>
+                  <TextBlock Margin="0,2,0,0"
+                             FontSize="11"
+                             FontWeight="Normal"
+                             Foreground="{StaticResource MutedBrush}"
+                             Text="Adds the colors as a new Color Set in CSP"/>
+                </StackPanel>
+                <TextBlock Grid.Column="2"
+                           VerticalAlignment="Center"
+                           Foreground="{StaticResource AccentBrush}"
+                           Text="ADD"/>
+              </Grid>
+            </Button>
+
+            <Button x:Name="OpenPaletteButton"
+                    Margin="17,10,0,0"
+                    Style="{StaticResource SecondaryButtonStyle}"
+                    Visibility="Collapsed"
+                    Click="OpenPaletteButton_Click"
+                    Content="Show palette file"
+                    automation:AutomationProperties.Name="Show generated palette file in Explorer"/>
+          </StackPanel>
+        </Border>
+
+        <TextBlock Margin="0,12,0,0"
+                   HorizontalAlignment="Center"
+                   FontSize="11"
+                   Foreground="{StaticResource SubtleBrush}"
+                   Text="Local processing · no artwork is uploaded"/>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</Window>
