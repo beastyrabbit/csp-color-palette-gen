@@ -116,3 +116,9 @@ The Companion Mode implementation follows the MIT-licensed protocol work in
 [`chocolatkey/clipremote`](https://github.com/chocolatkey/clipremote). QR
 decoding uses ZXing.Net. See `THIRD-PARTY-NOTICES.md` in the source and
 published output for license details.
+
+## License
+
+Copyright (C) 2026 beasty.
+
+This project is licensed under the [GNU General Public License v3.0](LICENSE).
