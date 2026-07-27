@@ -1,53 +1,57 @@
 # Selection · Canvas Auto Action
 
-**Recommended:** import the tested Auto Action set instead of recording it
-yourself.
-
-- [Download the `.laf` set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion.laf)
-- [Download the complete ZIP](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion_AutoAction.zip)
-
 The imported action is named **Sichtbare Ebenen kopieren**. It creates a
 temporary merged copy of all visible layers, copies it to the clipboard, and
 deletes the temporary layer again. The original layer stack stays unchanged.
 
-## Import the ready-made set
+## Download
+
+- [Download the `.laf` set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion.laf)
+- [Download the complete ZIP](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion_AutoAction.zip)
+
+## Written setup — step by step
+
+### 1. Import the downloaded set
 
 1. In Clip Studio Paint, open **Window > Auto Action**
    (*Fenster > Auto-Aktion*).
-2. Open the palette menu and choose **Import set…** (*Set importieren…*).
-3. Select `CSP_Palette_Companion.laf`.
-4. Run **Sichtbare Ebenen kopieren** once on a disposable document and paste
-   the clipboard contents to verify it.
+2. Open the Auto Action palette menu.
+3. Choose **Import set…** (*Set importieren…*).
+4. Select `CSP_Palette_Companion.laf`.
+5. Confirm that **Sichtbare Ebenen kopieren** appears in the palette.
 
-![Import or export an Auto Action set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-08-import-export.png)
-
-## Add it to Palette Companion
-
-Companion Mode can run commands registered in **Quick Access**, but it cannot
-inspect their recorded steps.
+### 2. Add the action to Quick Access
 
 1. Open **Window > Quick Access** (*Fenster > Schnellzugriff*).
 2. Drag **Sichtbare Ebenen kopieren** from Auto Action into a Quick Access set.
-3. Connect CSP Palette Companion.
-4. In **Settings**, enable **Clipboard capture** and
-   **Run selected CSP Auto Action**.
-5. Select **Refresh CSP actions**, then choose
-   **Sichtbare Ebenen kopieren**.
 
-> CSP exposes only the command name over Companion Mode. The app cannot prove
-> what a selected Auto Action does, so test this action on a disposable
-> document before using it on artwork.
+### 3. Select it in Palette Companion
 
-## Rebuild it manually
+1. Connect CSP Palette Companion to Clip Studio Paint.
+2. Open **Settings**.
+3. Enable **Clipboard capture**.
+4. Enable **Run selected CSP Auto Action**.
+5. Select **Refresh CSP actions**.
+6. Choose **Sichtbare Ebenen kopieren**.
 
-Start with a document that has several clearly named, visible layers.
+### 4. Test it once
 
-Open the **Auto Action** palette and create a new action named
-**Sichtbare Ebenen kopieren**.
+1. Use a disposable document with several visible layers.
+2. Make a small selection.
+3. Run **Sichtbare Ebenen kopieren**.
+4. Paste the clipboard contents.
+5. Confirm that the pasted result contains the merged visible pixels and that
+   the original layer stack is unchanged.
 
-Start recording.
+> CSP exposes only the command name over Companion Mode. It does not expose the
+> recorded steps, so test the selected action before using it on artwork.
 
-Record exactly these three commands, in this order:
+## Build the action manually instead
+
+1. Open **Window > Auto Action** (*Fenster > Auto-Aktion*).
+2. Create an action named **Sichtbare Ebenen kopieren**.
+3. Start recording.
+4. Record exactly these three commands, in this order:
 
 | # | English | German |
 | --- | --- | --- |
@@ -55,8 +59,23 @@ Record exactly these three commands, in this order:
 | 2 | Edit > Copy | Bearbeiten > Kopieren |
 | 3 | Layer > Delete layer | Ebene > Ebene löschen |
 
-Stop recording. The finished action must contain exactly the three steps shown
-below.
+5. Stop recording.
+6. Verify that the action contains only those three enabled commands.
+7. Continue with **Add the action to Quick Access** above.
+
+## Visual reference
+
+**Import or export the Auto Action set**
+
+<img src="https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-08-import-export.png" alt="Import or export an Auto Action set" width="440">
+
+**After “Merge visible to new layer”: a temporary merged layer is present**
+
+<img src="https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-04-merge-visible.png" alt="Temporary merged layer after Merge visible to new layer" width="440">
+
+**After “Delete layer”: the temporary layer is gone again**
+
+<img src="https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-06-delete-temp.png" alt="Original layer stack after deleting the temporary layer" width="440">
 
 ## Use it
 
