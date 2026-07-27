@@ -4,11 +4,11 @@ Windows 10 or newer, x64. No installer: put the `.exe` anywhere.
 
 | Build | Size | Prerequisite |
 | --- | --- | --- |
-| `CSP-Palette-Companion-win-x64.exe` | 2.3 MiB | .NET 8 Desktop Runtime. Flagged by scanners less often. |
-| `CSP-Palette-Companion-win-x64-self-contained.exe` | 68.7 MiB | none |
+| `…-needs-dotnet10.exe` | 1.1 MiB | .NET 10 Desktop Runtime. Flagged by scanners less often. |
+| `…-standalone.exe` | 72.3 MiB | none |
 
-Get **.NET Desktop Runtime 8.0.x, x64** from
-<https://dotnet.microsoft.com/download/dotnet/8.0>. The plain .NET and ASP.NET
+Get **.NET Desktop Runtime 10.0.x, x64** from
+<https://dotnet.microsoft.com/download/dotnet/10.0>. The plain .NET and ASP.NET
 Core runtimes do not work; WPF needs the *Desktop* runtime. Check with
 `dotnet --list-runtimes | Select-String WindowsDesktop`.
 
@@ -22,7 +22,7 @@ Get-FileHash .\CSP-Palette-Companion-win-x64.exe -Algorithm SHA256
 
 A single-file .NET app unpacks a runtime payload on first launch, exactly like
 packed malware, and these binaries are unsigned — so heuristics score them. The
-68.7 MiB build unpacks more and is flagged more often. Unsigned executables also
+72.3 MiB build unpacks more and is flagged more often. Unsigned executables also
 show **Windows protected your PC**: select **More info**, then **Run anyway**.
 
 If a scanner quarantines the file, check the SHA256 first. A match means it is
@@ -44,7 +44,7 @@ tray, delete the `.exe` and `%LOCALAPPDATA%\CSP Palette Companion`.
 
 ## Build from source
 
-.NET 8 SDK on Windows; WPF does not build elsewhere. Publish
+.NET 10 SDK on Windows; WPF does not build elsewhere. Publish
 `src/CspPaletteCompanion.App` with `-r win-x64 -p:PublishSingleFile=true`, plus
 `--self-contained true -p:IncludeNativeLibrariesForSelfExtract=true
 -p:EnableCompressionInSingleFile=true` for the standalone build. Trimming and

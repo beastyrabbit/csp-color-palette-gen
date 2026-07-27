@@ -7,8 +7,8 @@
     Produces exactly what .forgejo/workflows/release.yml produces — the workflow calls this
     same script — so a release can be cut by hand without a runner.
 
-        CSP-Palette-Companion-<version>-win-x64-needs-dotnet8.exe
-            Framework-dependent, single file. Requires the .NET 8 Desktop Runtime.
+        CSP-Palette-Companion-<version>-win-x64-needs-dotnet10.exe
+            Framework-dependent, single file. Requires the .NET 10 Desktop Runtime.
         CSP-Palette-Companion-<version>-win-x64-standalone.exe
             Self-contained, single file, compressed. No prerequisites.
         CSP_Palette_Companion.laf
@@ -96,7 +96,7 @@ $common = @(
 
 $builds = @(
     @{
-        Name  = "$stem-$Version-win-x64-needs-dotnet8.exe"
+        Name  = "$stem-$Version-win-x64-needs-dotnet10.exe"
         Dir   = Join-Path $staging 'framework-dependent'
         Extra = @('--self-contained', 'false')
     }
@@ -183,10 +183,10 @@ Windows 10 or 11, 64-bit. CLIP STUDIO PAINT PRO or EX.
 
 | Download | Size | You need |
 | --- | --- | --- |
-| ``$small`` | $(Format-Size $small) | the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| ``$small`` | $(Format-Size $small) | the [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
 | ``$big`` | $(Format-Size $big) | nothing |
 
-Choose the smaller download if the .NET 8 Desktop Runtime is already installed.
+Choose the smaller download if the .NET 10 Desktop Runtime is already installed.
 Both downloads contain the same application and require no installer.
 
 ### Optional Auto Action

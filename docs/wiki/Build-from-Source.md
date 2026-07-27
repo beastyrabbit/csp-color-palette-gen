@@ -5,7 +5,7 @@ available there.
 
 | Need | Version |
 | --- | --- |
-| .NET SDK | 8.0 |
+| .NET SDK | 10.0 |
 | OS | Windows 10/11 64-bit |
 
 ```powershell
@@ -26,8 +26,8 @@ a tagged one produce identical files.
 
 | Artifact | Size | Flags |
 | --- | --- | --- |
-| `…-needs-dotnet8.exe` | 2.4 MiB | `--self-contained false -p:PublishSingleFile=true` |
-| `…-standalone.exe` | 68.7 MiB | `--self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeAllContentForSelfExtract=true` |
+| `…-needs-dotnet10.exe` | 1.1 MiB | `--self-contained false -p:PublishSingleFile=true` |
+| `…-standalone.exe` | 72.3 MiB | `--self-contained true -p:PublishSingleFile=true -p:EnableCompressionInSingleFile=true -p:IncludeAllContentForSelfExtract=true` |
 
 `IncludeAllContentForSelfExtract` is load-bearing. Without it the publish leaves five native
 WPF DLLs (`D3DCompiler_47_cor3`, `wpfgfx_cor3`, `PresentationNative_cor3`, `PenImc_cor3`,
@@ -53,16 +53,9 @@ reconciles the two working trees when both are checked out side by side.
 
 ## CI
 
-`.forgejo/workflows/ci.yml` splits on the only line that matters:
-
 | Job | Runner | Covers |
 | --- | --- | --- |
-| `libraries` | Linux | plain `net8.0` projects, by explicit project list |
 | `windows` | Windows | the WPF app, all tests, every release artifact |
-
-The Linux job never touches the `.sln` — that would pull in the WPF app and fail. It also
-checks out with `git` rather than an action, because the .NET SDK container ships no Node.js
-and every checkout action is a node20 JavaScript action.
 
 `release.yml` runs on a `v*` tag and calls `publish-local.ps1`, then creates the release
 through the Forgejo API with `curl`. Auth header is `token`, not `Bearer`.

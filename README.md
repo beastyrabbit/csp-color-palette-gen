@@ -14,8 +14,8 @@ no installer.
 
 | File | Size | Needs |
 | --- | --- | --- |
-| `…-needs-dotnet8.exe` | 2.4 MiB | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| `…-standalone.exe` | 68.8 MiB | nothing |
+| `…-needs-dotnet10.exe` | 1.1 MiB | [.NET 10 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/10.0) |
+| `…-standalone.exe` | 72.3 MiB | nothing |
 
 Take the small one unless you would rather skip the runtime. Antivirus flagged
 it? See [Installation](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki/Installation).
@@ -77,7 +77,7 @@ Toggle **Use CSP Mux when it is running** in Settings.
 
 ## Build
 
-.NET 8 SDK, Windows only —
+.NET 10 SDK, Windows only —
 [Build from source](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki/Build-from-Source).
 
 [Wiki](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki) ·

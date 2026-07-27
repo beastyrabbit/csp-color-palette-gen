@@ -6,7 +6,7 @@ Two Windows desktop applications, one visual identity, one literal `Theme.xaml`:
 
 | App | Repo | Framework | Fate |
 |---|---|---|---|
-| **CSP Palette Companion** | `C:/projects/csp_color_palette_gen` | WPF, `net8.0-windows` | Refined in place |
+| **CSP Palette Companion** | `C:/projects/csp_color_palette_gen` | WPF, `net10.0-windows` | Refined in place |
 | **CSP Mux** | `C:/projects/csp-app-multiplexer` | WinForms → **WPF**, `net8.0-windows` | Rewritten |
 
 Every number in this document has been derived and summed. Where a number is load-bearing, the derivation is printed next to it. **The implementer must never have to invent a value.** If a value appears to be missing, it is a defect in this document — do not guess; the intended value is recorded in the section that owns the component.
