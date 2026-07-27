@@ -63,20 +63,6 @@ deletes the temporary layer again. The original layer stack stays unchanged.
 6. Verify that the action contains only those three enabled commands.
 7. Continue with **Add the action to Quick Access** above.
 
-## Visual reference
-
-**Import or export the Auto Action set**
-
-<img src="assets/selection-autoaction-08-import-export.png" alt="Import or export an Auto Action set" width="440">
-
-**After “Merge visible to new layer”: a temporary merged layer is present**
-
-<img src="assets/selection-autoaction-04-merge-visible.png" alt="Temporary merged layer after Merge visible to new layer" width="440">
-
-**After “Delete layer”: the temporary layer is gone again**
-
-<img src="assets/selection-autoaction-06-delete-temp.png" alt="Original layer stack after deleting the temporary layer" width="440">
-
 ## Use it
 
 Select a region in CSP, choose **Selection · Canvas**, then
