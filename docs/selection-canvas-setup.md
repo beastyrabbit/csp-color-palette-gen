@@ -1,32 +1,91 @@
-# Selection · Canvas setup
+# Selection · Canvas Auto Action
 
-Clip Studio Paint's Companion Mode can run commands that are already registered
-in **Quick Access**, but it cannot create or inspect the recorded steps of an
-Auto Action.
+**Recommended:** import the tested Auto Action set instead of recording it
+yourself.
 
-Create an Auto Action in CSP with exactly these steps:
+- [Download the `.laf` set](assets/CSP_Palette_Companion.laf)
+- [Download the complete ZIP](assets/CSP_Palette_Companion_AutoAction.zip)
 
-1. **Layer > Merge visible to new layer**
-   (German: *Ebene > Kopien sichtbarer Ebenen kombinieren*)
-2. **Edit > Copy** (*Bearbeiten > Kopieren*)
-3. **Layer > Delete layer** (*Ebene > Ebene löschen*)
+The imported action is named **Sichtbare Ebenen kopieren**. It creates a
+temporary merged copy of all visible layers, copies it to the clipboard, and
+deletes the temporary layer again. The original layer stack stays unchanged.
 
-The action must leave the original layer stack and selection unchanged. Test it
-on a disposable document before using it on artwork.
+## Import the ready-made set
 
-Then:
+1. In Clip Studio Paint, open **Window > Auto Action**
+   (*Fenster > Auto-Aktion*).
+2. Open the palette menu and choose **Import set…** (*Set importieren…*).
+3. Select `CSP_Palette_Companion.laf`.
+4. Run **Sichtbare Ebenen kopieren** once on a disposable document and paste
+   the clipboard contents to verify it.
 
-1. Add the Auto Action to a CSP **Quick Access** set.
-2. Open **Settings** in CSP Palette Companion.
-3. Enable **Clipboard capture**.
-4. Enable **Run selected CSP Auto Action**.
-5. Select **Refresh CSP actions**.
-6. Choose the action you created.
+![Import or export an Auto Action set](assets/selection-autoaction-08-import-export.png)
 
-The app stores the exact Quick Access command identity and verifies that it is
-still enabled before each run. CSP does not expose the action's internal steps,
-so the app cannot independently prove that a differently configured action is
-safe.
+![The finished action with three steps](assets/selection-autoaction-07-finished.png)
 
-When this project has a public repository, this file is intended to be the
-target of the in-app setup-guide link.
+## Add it to Palette Companion
+
+Companion Mode can run commands registered in **Quick Access**, but it cannot
+inspect their recorded steps.
+
+1. Open **Window > Quick Access** (*Fenster > Schnellzugriff*).
+2. Drag **Sichtbare Ebenen kopieren** from Auto Action into a Quick Access set.
+3. Connect CSP Palette Companion.
+4. In **Settings**, enable **Clipboard capture** and
+   **Run selected CSP Auto Action**.
+5. Select **Refresh CSP actions**, then choose
+   **Sichtbare Ebenen kopieren**.
+
+> CSP exposes only the command name over Companion Mode. The app cannot prove
+> what a selected Auto Action does, so test this action on a disposable
+> document before using it on artwork.
+
+## Rebuild it manually
+
+Start with a document that has several clearly named, visible layers.
+
+![Layered sample artwork](assets/selection-autoaction-01-layered-sample.png)
+
+Open the **Auto Action** palette and create a new action named
+**Sichtbare Ebenen kopieren**.
+
+![Auto Action palette](assets/selection-autoaction-02-palette.png)
+
+Start recording.
+
+![Recording started](assets/selection-autoaction-03-record.png)
+
+Record exactly these three commands, in this order:
+
+| # | English | German |
+| --- | --- | --- |
+| 1 | Layer > Merge visible to new layer | Ebene > Kopien sichtbarer Ebenen kombinieren |
+| 2 | Edit > Copy | Bearbeiten > Kopieren |
+| 3 | Layer > Delete layer | Ebene > Ebene löschen |
+
+![Merge visible to new layer](assets/selection-autoaction-04-merge-visible.png)
+
+![Copy](assets/selection-autoaction-05-copy.png)
+
+![Delete the temporary merged layer](assets/selection-autoaction-06-delete-temp.png)
+
+Stop recording. The finished action must contain exactly the three steps shown
+below.
+
+![Finished action](assets/selection-autoaction-07-finished.png)
+
+## Use it
+
+Select a region in CSP, choose **Selection · Canvas**, then
+**Extract palette**. The app focuses CSP, runs the selected Auto Action, reads
+the clipboard, and restores the previous clipboard contents.
+
+## Troubleshooting
+
+| Symptom | Fix |
+| --- | --- |
+| **Refresh CSP actions** is empty, or the action is missing | Connect first and make sure the action is in a Quick Access set. |
+| **Selection · Canvas** is disabled | Enable both capture toggles and select one Auto Action. |
+| The palette covers the whole canvas | No selection was active. CSP does not expose selection state. |
+| A merged layer remains, or CSP waits for input | A step is missing, extra, or requires confirmation. Import the tested set again or re-record it. |
+| The command is no longer enabled | Add it to Quick Access again, refresh, and re-select it. |

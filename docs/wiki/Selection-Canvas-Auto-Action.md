@@ -1,34 +1,61 @@
 # Selection · Canvas Auto Action
 
-Companion Mode cannot ask CSP what your selection is, so **Selection · Canvas**
-triggers a Quick Access command that copies the merged visible pixels inside it
-to the clipboard. You record that command once.
+**Recommended:** import the tested Auto Action set instead of recording it
+yourself.
 
-> **CSP exposes only a command's name over Companion Mode, never its recorded
-> steps. The app cannot verify what the action you pick does.** One that
-> flattens the document or exports a file will be run the same way. Record the
-> action below, test it, pick that one.
+- [Download the `.laf` set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion.laf)
+- [Download the complete ZIP](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/CSP_Palette_Companion_AutoAction.zip)
 
-Menu paths: English, German in parentheses. Start with a scrap document open,
-Companion Mode on (**File > Connect to smartphone** / *Datei > Mit Smartphone
-verbinden…*) and the app connected.
+The imported action is named **Sichtbare Ebenen kopieren**. It creates a
+temporary merged copy of all visible layers, copies it to the clipboard, and
+deletes the temporary layer again. The original layer stack stays unchanged.
 
-## Part 1 — Record the action
+## Import the ready-made set
 
-**Window > Auto Action** (*Fenster > Auto-Aktion*).
+1. In Clip Studio Paint, open **Window > Auto Action**
+   (*Fenster > Auto-Aktion*).
+2. Open the palette menu and choose **Import set…** (*Set importieren…*).
+3. Select `CSP_Palette_Companion.laf`.
+4. Run **Sichtbare Ebenen kopieren** once on a disposable document and paste
+   the clipboard contents to verify it.
 
-![Auto Action palette](../assets/autoaction-01-auto-action-palette.png)
+![Import or export an Auto Action set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-08-import-export.png)
 
-Add an action to a set. Name it for a command list — `Palette Companion
-selection`, not `Action 1`.
+![The finished action with three steps](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-07-finished.png)
 
-![New action](../assets/autoaction-02-new-action.png)
+## Add it to Palette Companion
 
-Select the record button. Everything from here is captured.
+Companion Mode can run commands registered in **Quick Access**, but it cannot
+inspect their recorded steps.
 
-![Recording started](../assets/autoaction-03-record.png)
+1. Open **Window > Quick Access** (*Fenster > Schnellzugriff*).
+2. Drag **Sichtbare Ebenen kopieren** from Auto Action into a Quick Access set.
+3. Connect CSP Palette Companion.
+4. In **Settings**, enable **Clipboard capture** and
+   **Run selected CSP Auto Action**.
+5. Select **Refresh CSP actions**, then choose
+   **Sichtbare Ebenen kopieren**.
 
-Run these three commands in order, nothing else.
+> CSP exposes only the command name over Companion Mode. The app cannot prove
+> what a selected Auto Action does, so test this action on a disposable
+> document before using it on artwork.
+
+## Rebuild it manually
+
+Start with a document that has several clearly named, visible layers.
+
+![Layered sample artwork](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-01-layered-sample.png)
+
+Open the **Auto Action** palette and create a new action named
+**Sichtbare Ebenen kopieren**.
+
+![Auto Action palette](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-02-palette.png)
+
+Start recording.
+
+![Recording started](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-03-record.png)
+
+Record exactly these three commands, in this order:
 
 | # | English | German |
 | --- | --- | --- |
@@ -36,53 +63,29 @@ Run these three commands in order, nothing else.
 | 2 | Edit > Copy | Bearbeiten > Kopieren |
 | 3 | Layer > Delete layer | Ebene > Ebene löschen |
 
-Step 2 copies only what is inside the selection; step 3 undoes step 1.
+![Merge visible to new layer](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-04-merge-visible.png)
 
-![Merge visible to new layer](../assets/autoaction-04-merge-visible.png)
+![Copy](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-05-copy.png)
 
-![Copy](../assets/autoaction-05-copy.png)
+![Delete the temporary merged layer](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-06-delete-temp.png)
 
-![Delete layer](../assets/autoaction-06-delete-layer.png)
+Stop recording. The finished action must contain exactly the three steps shown
+below.
 
-Stop recording and expand the action: exactly three steps, in that order.
+![Finished action](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-07-finished.png)
 
-![The three recorded steps](../assets/autoaction-07-stop-recording.png)
+## Use it
 
-Test it: layer stack and selection unchanged, pasting gives the selected region,
-merged.
-
-## Part 2 — Add it to Quick Access
-
-Companion Mode sees Quick Access commands only. Open **Window > Quick Access**
-(*Fenster > Schnellzugriff*), drag the action onto a set.
-
-![Registering the action](../assets/autoaction-08-quick-access-register.png)
-
-![The action in the set](../assets/autoaction-09-quick-access-set.png)
-
-## Part 3 — Point the app at it
-
-![Palette Companion settings](../assets/autoaction-10-companion-settings.png)
-
-In **Settings**, enable **Clipboard capture** and **Run selected CSP Auto
-Action**, select **Refresh**, then choose your action.
-
-![Choosing the action](../assets/autoaction-11-choose-action.png)
-
-![Selection · Canvas result](../assets/autoaction-12-selection-canvas-result.png)
-
-## Using it
-
-Select a region in CSP, choose **Selection · Canvas**, **Extract palette**. The
-app focuses CSP, runs the command, reads the clipboard, and restores text,
-bitmaps and file drops.
+Select a region in CSP, choose **Selection · Canvas**, then
+**Extract palette**. The app focuses CSP, runs the selected Auto Action, reads
+the clipboard, and restores the previous clipboard contents.
 
 ## Troubleshooting
 
 | Symptom | Fix |
 | --- | --- |
-| **Refresh** empty, or the action missing | Connect first; the action must be in a Quick Access set. |
-| **Selection · Canvas** greyed out | Both toggles on, one action chosen. |
-| The palette covers the whole canvas | No selection was active. CSP cannot be asked whether one exists. |
-| A layer is left behind, or CSP hangs | A step is missing, extra, or needs confirmation. Re-record. |
-| The command is no longer enabled | It left Quick Access. Re-register, Refresh, re-select. |
+| **Refresh CSP actions** is empty, or the action is missing | Connect first and make sure the action is in a Quick Access set. |
+| **Selection · Canvas** is disabled | Enable both capture toggles and select one Auto Action. |
+| The palette covers the whole canvas | No selection was active. CSP does not expose selection state. |
+| A merged layer remains, or CSP waits for input | A step is missing, extra, or requires confirmation. Import the tested set again or re-record it. |
+| The command is no longer enabled | Add it to Quick Access again, refresh, and re-select it. |
