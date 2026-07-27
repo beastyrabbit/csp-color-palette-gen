@@ -77,9 +77,8 @@ Toggle **Use CSP Mux when it is running** in Settings.
 
 ## Build
 
-.NET 8 SDK, Windows only. `dotnet build CspPaletteCompanion.sln -c Release`;
-`tools\publish-local.ps1` writes releases to `dist\release\`. Trimming and
-NativeAOT are impossible (NETSDK1175, WinForms).
+.NET 8 SDK, Windows only —
+[Build from source](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki/Build-from-Source).
 
 [Wiki](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki) ·
 [Issues](https://git.heerlab.com/beasty/csp-color-palette-gen/issues) ·

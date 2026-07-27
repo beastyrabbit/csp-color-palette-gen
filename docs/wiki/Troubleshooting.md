@@ -7,10 +7,10 @@ Auto Action problems:
 
 | Symptom | Fix |
 | --- | --- |
-| Status stays **Offline** | A running CSP is not a connection. Enable Companion Mode, select **Connect**. |
+| **Offline** while CSP runs | A running CSP is not a connection. Enable Companion Mode, then **Connect**. |
 | Scanning never finds the QR | Keep CSP's QR window in front, on the primary display. |
 | Companion Mode switched off | **Connect to smartphone** is a toggle. Select it again. |
-| Any **CSP Mux** message | Start sharing, set the Mux to **This computer only**, or scan its proxy QR. Non-loopback and unverifiable sessions are refused. |
+| Any **CSP Mux** message | Start sharing, set the Mux to **This computer only**, or scan its proxy QR. |
 
 ## Capture, extraction, app
 
@@ -18,10 +18,9 @@ Auto Action problems:
 | --- | --- |
 | A source is greyed out | Enable **Clipboard capture** (Layer, Selection) or **Companion canvas capture**. |
 | A capture is refused over its size | Layer: deselect in CSP. Selection · Layer: make a selection. |
-| Canvas gives another page, or opaque pixels | It reads CSP's Webtoon Preview and stops rather than guess. Use a clipboard source. |
-| The clipboard did not come back | Only text, bitmaps and file drops can be restored. |
+| Canvas gives another page, or opaque pixels | It reads Webtoon Preview and stops rather than guess. Use a clipboard source. |
 | "No eligible pixels" | All transparent, near-black or near-white. Extract a mid-tone region. |
-| Too few swatches, a missing accent, all sky | Few distinct colours. Raise the minor count or select a smaller region. |
+| Too few swatches, or all sky | Raise the minor count, or select a smaller region. |
 | Dragging the card does nothing | Drop it on the Color Set palette, or **Show file** and import the `.aco`. |
 | Closing the window did not exit | **Exit** in the tray menu, or turn off **System tray**. |
 | Off-screen window, or settings reset | Delete `settings.json` under `%LOCALAPPDATA%\CSP Palette Companion`. |
@@ -29,4 +28,4 @@ Auto Action problems:
 
 Still stuck: open an issue at
 <https://git.heerlab.com/beasty/csp-color-palette-gen/issues> with your CSP
-version and language, the build, the source, and the status text.
+version and language, the build, the source, and the status text shown.

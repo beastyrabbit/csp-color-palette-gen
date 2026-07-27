@@ -1,6 +1,6 @@
 # Installation
 
-Windows 10 or newer, x64. No installer — put the `.exe` where you want it.
+Windows 10 or newer, x64. No installer: put the `.exe` anywhere.
 
 | Build | Size | Prerequisite |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Windows 10 or newer, x64. No installer — put the `.exe` where you want it.
 
 Get **.NET Desktop Runtime 8.0.x, x64** from
 <https://dotnet.microsoft.com/download/dotnet/8.0>. The plain .NET and ASP.NET
-Core runtimes do not work — WPF needs the *Desktop* runtime. Check with
+Core runtimes do not work; WPF needs the *Desktop* runtime. Check with
 `dotnet --list-runtimes | Select-String WindowsDesktop`.
 
 Verify the download against the SHA256 on the release page:
@@ -20,11 +20,10 @@ Get-FileHash .\CSP-Palette-Companion-win-x64.exe -Algorithm SHA256
 
 ## Antivirus and SmartScreen
 
-A single-file .NET app unpacks a runtime payload into a temporary directory on
-first launch. Packed malware does the same, and these binaries are unsigned, so
-heuristics score them; the 68.7 MiB build unpacks more and is flagged more
-often. Unsigned executables also show **Windows protected your PC** — select
-**More info**, then **Run anyway**.
+A single-file .NET app unpacks a runtime payload on first launch, exactly like
+packed malware, and these binaries are unsigned — so heuristics score them. The
+68.7 MiB build unpacks more and is flagged more often. Unsigned executables also
+show **Windows protected your PC**: select **More info**, then **Run anyway**.
 
 If a scanner quarantines the file, check the SHA256 first. A match means it is
 byte-for-byte the published file: exclude that one file, not its folder (Windows

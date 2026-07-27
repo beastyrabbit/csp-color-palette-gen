@@ -36,7 +36,8 @@ enable **Use CSP Mux when it is running**.
 [Installation](Installation) ·
 [Selection Canvas Auto Action](Selection-Canvas-Auto-Action) ·
 [How Palette Extraction Works](How-Palette-Extraction-Works) ·
-[Troubleshooting](Troubleshooting)
+[Troubleshooting](Troubleshooting) ·
+[Build from source](Build-from-Source)
 
 Settings and palettes live in `%LOCALAPPDATA%\CSP Palette Companion`. Processing
 is local. GPL-3.0.
