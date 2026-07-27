@@ -7,8 +7,9 @@ Auto Action.
 Create an Auto Action in CSP with exactly these steps:
 
 1. **Layer > Merge visible to new layer**
-2. **Edit > Copy**
-3. **Layer > Delete layer**
+   (German: *Ebene > Kopien sichtbarer Ebenen kombinieren*)
+2. **Edit > Copy** (*Bearbeiten > Kopieren*)
+3. **Layer > Delete layer** (*Ebene > Ebene löschen*)
 
 The action must leave the original layer stack and selection unchanged. Test it
 on a disposable document before using it on artwork.

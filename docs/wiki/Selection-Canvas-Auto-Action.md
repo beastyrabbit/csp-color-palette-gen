@@ -32,7 +32,7 @@ Run these three commands in order, nothing else.
 
 | # | English | German |
 | --- | --- | --- |
-| 1 | Layer > Merge visible to new layer | Ebene > Auf neue Ebene zusammenfassen |
+| 1 | Layer > Merge visible to new layer | Ebene > Kopien sichtbarer Ebenen kombinieren |
 | 2 | Edit > Copy | Bearbeiten > Kopieren |
 | 3 | Layer > Delete layer | Ebene > Ebene löschen |
 
