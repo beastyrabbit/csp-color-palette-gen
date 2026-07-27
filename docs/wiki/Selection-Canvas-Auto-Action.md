@@ -21,8 +21,6 @@ deletes the temporary layer again. The original layer stack stays unchanged.
 
 ![Import or export an Auto Action set](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-08-import-export.png)
 
-![The finished action with three steps](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-07-finished.png)
-
 ## Add it to Palette Companion
 
 Companion Mode can run commands registered in **Quick Access**, but it cannot
@@ -44,16 +42,10 @@ inspect their recorded steps.
 
 Start with a document that has several clearly named, visible layers.
 
-![Layered sample artwork](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-01-layered-sample.png)
-
 Open the **Auto Action** palette and create a new action named
 **Sichtbare Ebenen kopieren**.
 
-![Auto Action palette](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-02-palette.png)
-
 Start recording.
-
-![Recording started](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-03-record.png)
 
 Record exactly these three commands, in this order:
 
@@ -63,16 +55,8 @@ Record exactly these three commands, in this order:
 | 2 | Edit > Copy | Bearbeiten > Kopieren |
 | 3 | Layer > Delete layer | Ebene > Ebene löschen |
 
-![Merge visible to new layer](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-04-merge-visible.png)
-
-![Copy](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-05-copy.png)
-
-![Delete the temporary merged layer](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-06-delete-temp.png)
-
 Stop recording. The finished action must contain exactly the three steps shown
 below.
-
-![Finished action](https://git.heerlab.com/beasty/csp-color-palette-gen/raw/branch/main/docs/assets/selection-autoaction-07-finished.png)
 
 ## Use it
 
