@@ -156,30 +156,20 @@ $autoAction = Split-Path $actionSet -Leaf
 $autoActionPack = Split-Path $actionPack -Leaf
 $guideUrl = "$RepoUrl/src/tag/$Tag/docs/selection-canvas-setup.md"
 $installUrl = "$RepoUrl/wiki/Installation"
+$wikiUrl = "$RepoUrl/wiki"
 
 $body = @"
-The first public release of **CSP Palette Companion** turns artwork in CLIP STUDIO
-PAINT into a ready-to-import Color Set. It extracts a balanced set of major colors
-and distinctive accents, then writes a named Adobe Color Swatch file that can be
-dragged straight onto CSP's Color Set palette.
+The first public release of **CSP Palette Companion** turns CLIP STUDIO PAINT
+artwork into a balanced, ready-to-import Color Set. Windows 10/11, x64.
 
 ## Highlights
 
-- Capture the complete canvas through CSP Companion Mode without touching the clipboard.
-- Extract from the active layer or a bounded selection.
-- Generate deterministic major and minor colors with transparent, near-black, and
-  near-white pixels filtered out.
-- Click a generated swatch to set CSP's current drawing color.
-- Drag the finished ``.aco`` file directly from the app into CSP.
-- Connect through CSP Mux when it is available.
-- Run in the notification area with explicit permissions for canvas, clipboard,
-  and Auto Action access.
-- Import the included Auto Action for merged, multi-layer selection capture:
-  [setup guide]($guideUrl).
+- Extract deterministic major and accent colors from the canvas, active layer, or selection.
+- Set CSP's drawing color from a swatch or drag the generated ``.aco`` into Color Set.
+- Connect directly through Companion Mode or share the connection through CSP Mux.
+- Includes an optional Auto Action for merged, multi-layer selection capture.
 
 ## Downloads
-
-Windows 10 or 11, 64-bit. CLIP STUDIO PAINT PRO or EX.
 
 | Download | Size | You need |
 | --- | --- | --- |
@@ -187,41 +177,11 @@ Windows 10 or 11, 64-bit. CLIP STUDIO PAINT PRO or EX.
 | ``$big`` | $(Format-Size $big) | nothing |
 
 Choose the smaller download if the .NET 10 Desktop Runtime is already installed.
-Both downloads contain the same application and require no installer.
+The attachments also include ``$autoAction``, ``$autoActionPack``, checksums, and
+third-party notices.
 
-### Optional Auto Action
-
-| Download | Includes |
-| --- | --- |
-| ``$autoAction`` | Importable CSP Auto Action set |
-| ``$autoActionPack`` | Auto Action set, illustrated guide, and layered sample artwork |
-
-The Auto Action is needed only for merged **Selection · Canvas** capture across
-multiple layers. Layer and full-canvas extraction work without it.
-
-## Quick start
-
-1. Open artwork in CSP.
-2. In CSP, open **File → Connect to smartphone** and leave its QR code visible.
-3. Start CSP Palette Companion and select **Connect**.
-4. Choose a source and the number of major/minor colors.
-5. Select **Extract palette**.
-6. Drag **Drop onto CSP Color Set** onto CSP's Color Set palette.
-
-## Integrity and antivirus
-
-``SHA256SUMS.txt`` holds the SHA-256 of each file. To check one:
-
-``````
-Get-FileHash "$big" -Algorithm SHA256
-``````
-
-These executables are currently unsigned single-file bundles. Some antivirus products
-may flag that packaging style heuristically. Verify the SHA-256 checksum and see the
-[installation notes]($installUrl) if Windows or antivirus software blocks the download.
-
-Thank you for trying the first release. Bug reports and palette-quality examples are
-welcome in the repository's issue tracker.
+[Installation and usage]($installUrl) · [Full wiki]($wikiUrl) ·
+[Auto Action setup]($guideUrl)
 "@
 
 Write-Text (Join-Path $out 'release-body.md') ($body -replace "`r`n", "`n")
