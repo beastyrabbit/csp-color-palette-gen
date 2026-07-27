@@ -125,4 +125,45 @@ static void RunBenchmark()
     var p95 = samples[(int)Math.Ceiling(samples.Count * 0.95) - 1];
     Console.WriteLine(
         $"4K benchmark: median {samples[samples.Count / 2]:F1} ms, p95 {p95:F1} ms over {samples.Count} warm runs");
+
+    Array.Clear(pixels);
+    var emptyImage = new RgbaImage(benchmarkWidth, benchmarkHeight, pixels);
+    var emptySamples = new List<double>();
+    for (var iteration = 0; iteration < 10; iteration++)
+    {
+        var stopwatch = Stopwatch.StartNew();
+        try
+        {
+            extractor.Extract(emptyImage, new PaletteExtractionOptions());
+        }
+        catch (NoEligiblePixelsException)
+        {
+        }
+
+        emptySamples.Add(stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    emptySamples.Sort();
+    var emptyP95 = emptySamples[(int)Math.Ceiling(emptySamples.Count * 0.95) - 1];
+    Console.WriteLine(
+        $"4K empty benchmark: median {emptySamples[emptySamples.Count / 2]:F1} ms, p95 {emptyP95:F1} ms over {emptySamples.Count} warm runs");
+
+    var preflightSamples = new List<double>();
+    for (var iteration = 0; iteration < 10; iteration++)
+    {
+        var preflight = new BgraEligibilityPreflight();
+        var stopwatch = Stopwatch.StartNew();
+        preflight.Observe(pixels);
+        if (!preflight.IsDefinitelyIneligible)
+        {
+            throw new InvalidOperationException("Empty BGRA preflight was unexpectedly inconclusive.");
+        }
+
+        preflightSamples.Add(stopwatch.Elapsed.TotalMilliseconds);
+    }
+
+    preflightSamples.Sort();
+    var preflightP95 = preflightSamples[(int)Math.Ceiling(preflightSamples.Count * 0.95) - 1];
+    Console.WriteLine(
+        $"4K empty BGRA preflight: median {preflightSamples[preflightSamples.Count / 2]:F1} ms, p95 {preflightP95:F1} ms over {preflightSamples.Count} warm runs");
 }

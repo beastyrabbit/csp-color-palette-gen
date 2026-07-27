@@ -271,8 +271,19 @@ public sealed class PaletteExtractor
 
     private static ClusterResult[] Cluster(Pixel[] pixels, int requestedK, ulong seed)
     {
-        var distinctCount = pixels.Distinct().Count();
-        var k = Math.Min(requestedK, distinctCount);
+        // K never needs the exact distinct count once the request can be
+        // satisfied. Avoid building a large HashSet for typical photographs.
+        var distinct = new HashSet<Pixel>();
+        foreach (var pixel in pixels)
+        {
+            distinct.Add(pixel);
+            if (distinct.Count == requestedK)
+            {
+                break;
+            }
+        }
+
+        var k = distinct.Count;
         if (k == 0)
         {
             return Array.Empty<ClusterResult>();

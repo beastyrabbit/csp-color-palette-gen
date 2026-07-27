@@ -1,8 +1,9 @@
-using System.Runtime.InteropServices;
+﻿using System.Runtime.InteropServices;
 using System.IO;
 using System.Windows.Threading;
 using CspPaletteCompanion.Companion;
 using CspPaletteCompanion.Core.Palette;
+using CspPaletteCompanion.Core.Settings;
 
 namespace CspPaletteCompanion.App;
 
@@ -13,8 +14,15 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
 
     internal bool CompanionConnected => _companion.IsConnected;
 
+    internal ConnectionRoute Route => _companion.Route;
+
     internal Task ConnectCompanionAsync(CancellationToken cancellationToken) =>
         _companion.ConnectAsync(cancellationToken);
+
+    internal Task ConnectThroughMuxAsync(
+        CompanionPairingInfo pairing,
+        CancellationToken cancellationToken) =>
+        _companion.ConnectThroughMuxAsync(pairing, cancellationToken);
 
     internal Task SetCurrentColorAsync(RgbColor color, CancellationToken cancellationToken) =>
         _companion.SetCurrentColorAsync(color, cancellationToken);
@@ -36,14 +44,78 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
         CspSession session,
         SourceIntent source,
         CancellationToken cancellationToken) =>
-        AcquireAsync(session, source, null, cancellationToken);
+        AcquireCoreAsync(session, source, null, null, cancellationToken);
 
-    internal async Task<AcquisitionResult> AcquireAsync(
+    internal Task<AcquisitionResult> AcquireAsync(
         CspSession session,
         SourceIntent source,
         CompanionQuickAccessCommandIdentity? selectedMergedSelectionCommand,
+        CancellationToken cancellationToken) =>
+        AcquireCoreAsync(
+            session,
+            source,
+            selectedMergedSelectionCommand,
+            null,
+            cancellationToken);
+
+    internal Task<AcquisitionResult> AcquireAsync(
+        CspSession session,
+        SourceIntent source,
+        CompanionQuickAccessCommandIdentity? selectedMergedSelectionCommand,
+        AppSettings settings,
+        CancellationToken cancellationToken) =>
+        AcquireCoreAsync(
+            session,
+            source,
+            selectedMergedSelectionCommand,
+            settings,
+            cancellationToken);
+
+    private async Task<AcquisitionResult> AcquireCoreAsync(
+        CspSession session,
+        SourceIntent source,
+        CompanionQuickAccessCommandIdentity? selectedMergedSelectionCommand,
+        AppSettings? settings,
         CancellationToken cancellationToken)
     {
+        if (settings is not null)
+        {
+            if (source == SourceIntent.Canvas &&
+                !settings.AllowCompanionCanvasCapture)
+            {
+                return AcquisitionResult.Fail(
+                    "Companion canvas capture is off. Turn it on in Settings.");
+            }
+
+            if (source is SourceIntent.Layer or SourceIntent.SelectionLayer &&
+                !settings.AllowClipboardCapture)
+            {
+                return AcquisitionResult.Fail(
+                    "Clipboard capture is off. Turn it on in Settings.");
+            }
+
+            if (source == SourceIntent.SelectionCanvas)
+            {
+                if (!settings.AllowClipboardCapture)
+                {
+                    return AcquisitionResult.Fail(
+                        "Clipboard capture is off. Selection · Canvas needs it.");
+                }
+
+                if (!settings.AllowAutoActionExecution)
+                {
+                    return AcquisitionResult.Fail(
+                        "Auto Action execution is off. Turn it on in Settings.");
+                }
+
+                if (selectedMergedSelectionCommand is null)
+                {
+                    return AcquisitionResult.Fail(
+                        "Choose a CSP Quick Access action in Settings.");
+                }
+            }
+        }
+
         if (source == SourceIntent.Canvas)
         {
             Exception? companionError = null;
@@ -66,20 +138,31 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
                 companionError = exception;
             }
 
-            var existing = _clipboard.Read();
-            if (existing is not null)
+            if (settings is not null && !settings.AllowClipboardCapture)
+            {
+                return AcquisitionResult.Fail(
+                    $"Companion capture failed and clipboard fallback is off. {ReadableMessage(companionError)}");
+            }
+
+            var existingRead = _clipboard.Read();
+            if (existingRead.IsDefinitelyIneligible)
+            {
+                return AcquisitionResult.Fail(
+                    "No opaque mid-range pixels after filtering.");
+            }
+
+            if (existingRead.Image is { } existing)
             {
                 var fallbackResult = ValidateDimensions(existing, session, source);
                 return fallbackResult with
                 {
                     Route = AcquisitionRoute.Clipboard,
-                    Notice = "Companion Mode was unavailable, so the merged clipboard image was used.",
+                    Notice = "Used the clipboard image; Companion Mode was unavailable.",
                 };
             }
 
             return AcquisitionResult.Fail(
-                "Select Connect for direct Canvas access, or copy a merged canvas image first. " +
-                $"Companion Mode said: {ReadableMessage(companionError)}");
+                $"Connect, or copy a merged canvas image first. {ReadableMessage(companionError)}");
         }
 
         var isSelection = source is SourceIntent.SelectionCanvas or SourceIntent.SelectionLayer;
@@ -104,36 +187,38 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
         if (NativeMethods.GetForegroundWindow() != session.WindowHandle)
         {
             return AcquisitionResult.Fail(
-                "Clip Studio Paint did not remain the active window, so no keyboard commands were sent.");
+                "CSP lost focus; no keyboard commands were sent.");
         }
 
         if (!SendCopyShortcut())
         {
-            return AcquisitionResult.Fail("Windows could not send Copy to Clip Studio Paint.");
+            return AcquisitionResult.Fail("Could not send Copy to Clip Studio Paint.");
         }
 
-        var deadline = DateTime.UtcNow.AddSeconds(3);
-        while (DateTime.UtcNow < deadline &&
-               NativeMethods.GetClipboardSequenceNumber() == sequence)
-        {
-            await Task.Delay(50, cancellationToken);
-        }
-
-        var copiedSequence = NativeMethods.GetClipboardSequenceNumber();
+        var copiedSequence = await WaitForClipboardChangeAsync(
+            sequence,
+            session.WindowHandle,
+            source == SourceIntent.SelectionLayer,
+            cancellationToken);
         if (copiedSequence == sequence)
         {
             return AcquisitionResult.Fail(isSelection
-                ? "CSP did not copy any pixels. Select a layer with visible pixels inside the selection and try again."
-                : "CSP did not copy the active layer. Check that the layer contains visible pixels and try again.");
+                ? "CSP copied nothing. Select a layer with visible pixels inside the selection."
+                : "CSP copied nothing. Check the active layer has visible pixels.");
         }
 
         ClipboardImage? image = null;
+        var definitelyIneligible = false;
         var imageDeadline = DateTime.UtcNow.AddSeconds(1);
-        while (DateTime.UtcNow < imageDeadline && image is null)
+        while (DateTime.UtcNow < imageDeadline &&
+               image is null &&
+               !definitelyIneligible)
         {
             try
             {
-                image = _clipboard.Read();
+                var read = _clipboard.Read();
+                image = read.Image;
+                definitelyIneligible = read.IsDefinitelyIneligible;
             }
             catch (COMException)
             {
@@ -146,11 +231,18 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
         }
 
         var restored = snapshot.TryRestore(copiedSequence);
+        if (definitelyIneligible)
+        {
+            return AcquisitionResult.Fail(isSelection
+                ? "No opaque mid-range pixels after filtering."
+                : "No opaque mid-range pixels after filtering.");
+        }
+
         if (image is null)
         {
             return AcquisitionResult.Fail(isSelection
-                ? "No selection pixels were copied. Create a selection in Clip Studio Paint, then try again."
-                : "The active layer did not provide a clipboard image.");
+                ? "Nothing copied. Create a selection in Clip Studio Paint."
+                : "The active layer produced no clipboard image.");
         }
 
         var validated = ValidateDimensions(image, session, source);
@@ -171,8 +263,8 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
             (image.Width != canvas.Width || image.Height != canvas.Height))
         {
             return AcquisitionResult.Fail(
-                $"CSP copied {image.Width} × {image.Height}px, but the canvas is {canvas.Width} × {canvas.Height}px. " +
-                "An active selection may be cropping the source, so extraction stopped.");
+                $"CSP copied {image.Width} × {image.Height}, but the canvas is {canvas.Width} × {canvas.Height}. " +
+                "A selection may be cropping the source.");
         }
 
         if (source is SourceIntent.SelectionCanvas or SourceIntent.SelectionLayer &&
@@ -181,7 +273,7 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
             image.Height == selectionCanvas.Height)
         {
             return AcquisitionResult.Fail(
-                "No bounded selection was detected. Create a selection smaller than the full canvas in Clip Studio Paint, then try again.");
+                "No bounded selection. Create one smaller than the full canvas.");
         }
 
         return new AcquisitionResult(
@@ -224,17 +316,22 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
         if (copiedSequence == sequence)
         {
             return AcquisitionResult.Fail(
-                $"CSP ran “{actionName}”, but it did not copy pixels. " +
-                "Confirm that a bounded selection overlaps visible artwork.");
+                $"CSP ran “{actionName}” and copied nothing. " +
+                "Check the selection overlaps visible artwork.");
         }
 
         ClipboardImage? image = null;
+        var definitelyIneligible = false;
         var imageDeadline = DateTime.UtcNow.AddSeconds(1);
-        while (DateTime.UtcNow < imageDeadline && image is null)
+        while (DateTime.UtcNow < imageDeadline &&
+               image is null &&
+               !definitelyIneligible)
         {
             try
             {
-                image = _clipboard.Read();
+                var read = _clipboard.Read();
+                image = read.Image;
+                definitelyIneligible = read.IsDefinitelyIneligible;
             }
             catch (COMException)
             {
@@ -247,17 +344,23 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
         }
 
         var restored = snapshot.TryRestore(copiedSequence);
+        if (definitelyIneligible)
+        {
+            return AcquisitionResult.Fail(
+                "No opaque mid-range pixels after filtering.");
+        }
+
         if (image is null)
         {
             return AcquisitionResult.Fail(
-                $"CSP ran “{actionName}”, but the clipboard did not contain an image.");
+                $"CSP ran “{actionName}” and produced no image.");
         }
 
         var validated = ValidateDimensions(image, session, SourceIntent.SelectionCanvas);
         return validated with
         {
             ClipboardRestored = restored,
-            Notice = $"Visible selection copied through CSP Quick Access (“{actionName}”).",
+            Notice = null,
         };
     }
 
@@ -273,6 +376,55 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
 
         return NativeMethods.SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<NativeMethods.Input>()) ==
                inputs.Length;
+    }
+
+    private static async Task<uint> WaitForClipboardChangeAsync(
+        uint initialSequence,
+        nint cspWindow,
+        bool allowResponsiveFastFailure,
+        CancellationToken cancellationToken)
+    {
+        var started = DateTime.UtcNow;
+        var deadline = started.AddSeconds(3);
+        var responsivenessChecked = false;
+
+        while (DateTime.UtcNow < deadline)
+        {
+            var current = NativeMethods.GetClipboardSequenceNumber();
+            if (current != initialSequence)
+            {
+                return current;
+            }
+
+            // An empty CSP selection completes synchronously and leaves the
+            // clipboard untouched. Once CSP's UI thread has processed the Copy
+            // input and is responsive again, waiting the full timeout cannot
+            // produce pixels. A genuinely slow large copy keeps that thread
+            // busy, so it retains the original three-second allowance.
+            if (allowResponsiveFastFailure &&
+                !responsivenessChecked &&
+                DateTime.UtcNow - started >= TimeSpan.FromMilliseconds(450))
+            {
+                responsivenessChecked = true;
+                var responsive = NativeMethods.SendMessageTimeout(
+                    cspWindow,
+                    NativeMethods.WindowMessageNull,
+                    0,
+                    0,
+                    NativeMethods.SendMessageAbortIfHung,
+                    75,
+                    out _) != 0;
+                if (responsive)
+                {
+                    await Task.Delay(100, cancellationToken);
+                    return NativeMethods.GetClipboardSequenceNumber();
+                }
+            }
+
+            await Task.Delay(50, cancellationToken);
+        }
+
+        return NativeMethods.GetClipboardSequenceNumber();
     }
 
     private static NativeMethods.Input Key(

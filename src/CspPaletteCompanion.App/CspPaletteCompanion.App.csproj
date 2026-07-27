@@ -1,18 +1,22 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
-    <ApplicationHighDpiMode>PerMonitorV2</ApplicationHighDpiMode>
     <AssemblyName>CSP Palette Companion</AssemblyName>
     <RootNamespace>CspPaletteCompanion.App</RootNamespace>
     <Product>CSP Palette Companion</Product>
     <Version>0.1.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\csp-palette-companion.ico</ApplicationIcon>
     <SelfContained>false</SelfContained>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+  <ItemGroup>
+    <!-- The sink-side loopback guard is tested directly, not through its one caller. -->
+    <InternalsVisibleTo Include="CspPaletteCompanion.App.Tests" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CspPaletteCompanion.Core\CspPaletteCompanion.Core.csproj" />
     <ProjectReference Include="..\CspPaletteCompanion.Companion\CspPaletteCompanion.Companion.csproj" />
@@ -21,13 +25,40 @@
     <PackageReference Include="ZXing.Net.Bindings.Windows.Compatibility" Version="0.16.14" />
   </ItemGroup>
   <ItemGroup>
+    <!-- Resource as well as ApplicationIcon: the tray icon loads it through a pack URI,
+         which only resolves for an embedded resource. -->
+    <Resource Include="Assets\csp-palette-companion.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- The WinForms application-bootstrap generator reads app.manifest and reports
+         WFAC010 for the DPI block, telling us to use ApplicationHighDpiMode instead.
+         That property only emits ApplicationConfiguration.Initialize(), which a WPF
+         entry point never calls, so the manifest is the only thing that can declare
+         PerMonitorV2 here. Withdrawing the file from the generator is the fix; the
+         manifest itself is still built in through ApplicationManifest. -->
+    <AdditionalFiles Remove="app.manifest" />
+  </ItemGroup>
+  <ItemGroup>
     <!-- Keep WinForms available to the scanner without introducing WPF type-name collisions. -->
     <Using Remove="System.Drawing" />
     <Using Remove="System.Windows.Forms" />
   </ItemGroup>
+  <!-- Debug only, so a Release build of a fresh clone never depends on pwsh existing;
+       WarnAndContinue so drift is an MSBuild warning rather than a CS####; Exists(...) so
+       a source drop without tools/ still builds. -->
+  <Target Name="SuiteSyncCheck" BeforeTargets="BeforeBuild"
+          Condition="'$(Configuration)' == 'Debug' AND
+                     Exists('$(MSBuildProjectDirectory)\..\..\tools\suite-sync.ps1')">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildProjectDirectory)\..\..\tools\suite-sync.ps1&quot; -Mode Check"
+          ContinueOnError="WarnAndContinue" StandardOutputImportance="high" />
+  </Target>
   <ItemGroup>
     <None Include="..\..\THIRD-PARTY-NOTICES.md"
           Link="THIRD-PARTY-NOTICES.md"
+          CopyToOutputDirectory="PreserveNewest"
+          CopyToPublishDirectory="PreserveNewest" />
+    <None Include="..\..\docs\selection-canvas-setup.md"
+          Link="docs\selection-canvas-setup.md"
           CopyToOutputDirectory="PreserveNewest"
           CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>

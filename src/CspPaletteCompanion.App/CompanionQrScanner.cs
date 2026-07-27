@@ -1,10 +1,17 @@
+﻿// ═══ CSP SUITE SHARED FILE ══════════════════════════════════════════════════
+// Reconcile with tools/suite-sync.ps1 (spec §0.1). Tier 2.
+//   Companion : src/CspPaletteCompanion.App/CompanionQrScanner.cs
+//   Mux       : src/CspMultiplexer.App/CompanionQrScanner.cs
+// ════════════════════════════════════════════════════════════════════════════
 using System.Drawing;
 using System.Windows.Forms;
 using ZXing;
 using ZXing.Common;
 using ZXing.Windows.Compatibility;
 
+// ── SYNC-LOCAL BEGIN ──
 namespace CspPaletteCompanion.App;
+// ── SYNC-LOCAL END ──
 
 /// <summary>
 /// Finds a companion URL in a QR code currently visible on any active display.

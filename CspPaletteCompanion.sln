@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -11,6 +11,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Companion", "src\CspPaletteCompanion.Companion\CspPaletteCompanion.Companion.csproj", "{74516BF7-BE8B-4ED5-A7BF-35A556424FAE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.Companion.Tests", "tests\CspPaletteCompanion.Companion.Tests\CspPaletteCompanion.Companion.Tests.csproj", "{D5B14022-504E-438C-94F1-2D2069421985}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{9E06423D-204C-4D45-B759-8175357EC4F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CspPaletteCompanion.App.Tests", "tests\CspPaletteCompanion.App.Tests\CspPaletteCompanion.App.Tests.csproj", "{7756D169-C56A-4DA8-970D-0A9B018DFDDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -38,5 +42,12 @@ Global
 		{D5B14022-504E-438C-94F1-2D2069421985}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5B14022-504E-438C-94F1-2D2069421985}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5B14022-504E-438C-94F1-2D2069421985}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7756D169-C56A-4DA8-970D-0A9B018DFDDA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7756D169-C56A-4DA8-970D-0A9B018DFDDA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7756D169-C56A-4DA8-970D-0A9B018DFDDA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7756D169-C56A-4DA8-970D-0A9B018DFDDA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7756D169-C56A-4DA8-970D-0A9B018DFDDA} = {9E06423D-204C-4D45-B759-8175357EC4F9}
 	EndGlobalSection
 EndGlobal

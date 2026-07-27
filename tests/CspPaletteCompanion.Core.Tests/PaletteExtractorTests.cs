@@ -93,6 +93,46 @@ public sealed class PaletteExtractorTests
     }
 
     [Fact]
+    public void BgraPreflight_RejectsLargeTransparentBlackPayloadWithoutAllocatingAnRgbaCopy()
+    {
+        var preflight = new BgraEligibilityPreflight();
+        var chunk = new byte[4096 * 4];
+
+        for (var index = 0; index < 1024; index++)
+        {
+            preflight.Observe(chunk);
+        }
+
+        Assert.True(preflight.IsDefinitelyIneligible);
+        Assert.False(preflight.CanStopScanning);
+    }
+
+    [Fact]
+    public void BgraPreflight_DoesNotRejectBlackWhiteMixtureThatCanInterpolateToGray()
+    {
+        var preflight = new BgraEligibilityPreflight();
+
+        preflight.Observe(
+        [
+            0, 0, 0, 255,
+            255, 255, 255, 255,
+        ]);
+
+        Assert.False(preflight.IsDefinitelyIneligible);
+    }
+
+    [Fact]
+    public void BgraPreflight_StopsOnceNormalOpaqueArtworkIsConclusive()
+    {
+        var preflight = new BgraEligibilityPreflight();
+
+        preflight.Observe([80, 120, 160, 255]);
+
+        Assert.True(preflight.CanStopScanning);
+        Assert.False(preflight.IsDefinitelyIneligible);
+    }
+
+    [Fact]
     public void Extract_ReturnsFewerColorsInsteadOfDuplicatingAFlatSource()
     {
         var image = TestImage.Blocks((new RgbColor(90, 140, 190), 10));
