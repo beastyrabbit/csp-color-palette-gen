@@ -345,17 +345,6 @@ internal sealed class CompanionCanvasService : IAsyncDisposable
         }
     }
 
-    private static bool IsMergedSelectionCopyAction(CompanionQuickAccessCommand command)
-    {
-        var name = $"{command.DisplayName} {command.CommandName}";
-        return
-            name.Contains("CSP Palette Companion", StringComparison.OrdinalIgnoreCase) ||
-            (name.Contains("copy", StringComparison.OrdinalIgnoreCase) &&
-             name.Contains("merged", StringComparison.OrdinalIgnoreCase) &&
-             (name.Contains("selection", StringComparison.OrdinalIgnoreCase) ||
-              name.Contains("visible layer", StringComparison.OrdinalIgnoreCase)));
-    }
-
     private static CompanionQuickAccessCommand? ResolveMergedSelectionCommand(
         CompanionQuickAccessData quickAccess,
         CompanionQuickAccessCommandIdentity? selectedCommand,
@@ -363,7 +352,8 @@ internal sealed class CompanionCanvasService : IAsyncDisposable
     {
         if (selectedCommand is null)
         {
-            return quickAccess.EnabledCommands.FirstOrDefault(IsMergedSelectionCopyAction);
+            return quickAccess.EnabledCommands.FirstOrDefault(
+                QuickAccessActionMatcher.IsRecommended);
         }
 
         var enabledExact = quickAccess.FindEnabledCommand(selectedCommand);

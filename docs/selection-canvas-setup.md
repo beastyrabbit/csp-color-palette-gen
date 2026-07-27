@@ -32,7 +32,9 @@ deletes the temporary layer again. The original layer stack stays unchanged.
 3. Enable **Clipboard capture**.
 4. Enable **Run selected CSP Auto Action**.
 5. Select **Refresh CSP actions**.
-6. Choose **Sichtbare Ebenen kopieren**.
+6. Choose **Sichtbare Ebenen kopieren**. The app normally shows only matching
+   actions. Use **Show all** only if you renamed the action or its Quick Access
+   set.
 
 ### 4. Test it once
 

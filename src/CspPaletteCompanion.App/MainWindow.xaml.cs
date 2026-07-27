@@ -59,6 +59,9 @@ public partial class MainWindow : Window
     private bool _loadingSettings;
     private bool _pinned = true;
     private AppSettings _settings = AppSettings.Defaults;
+    private IReadOnlyList<CompanionQuickAccessCommandChoice> _availableActionChoices =
+        Array.Empty<CompanionQuickAccessCommandChoice>();
+    private bool _showAllActionChoices;
     private string? _lastPalettePath;
     private Point _dragStart;
 
@@ -1234,39 +1237,9 @@ public partial class MainWindow : Window
         {
             var choices = await _acquisition.GetQuickAccessCommandChoicesAsync(
                 _windowLifetime.Token);
-            var options = choices
-                .Select(choice => new QuickAccessActionOption(choice))
-                .ToArray();
-            var selectedIdentity = SelectedActionIdentity();
-            var selected = selectedIdentity is null
-                ? null
-                : options.FirstOrDefault(option =>
-                    string.Equals(
-                        option.Choice.Identity.CommandType,
-                        selectedIdentity.CommandType,
-                        StringComparison.Ordinal) &&
-                    string.Equals(
-                        option.Choice.Identity.CommandName,
-                        selectedIdentity.CommandName,
-                        StringComparison.Ordinal));
-
-            var previousLoading = _loadingSettings;
-            _loadingSettings = true;
-            try
-            {
-                AutoActionPicker.ItemsSource = options;
-                AutoActionPicker.SelectedItem = selected;
-            }
-            finally
-            {
-                _loadingSettings = previousLoading;
-            }
-
-            SetActionStatus(options.Length == 0
-                ? "CSP returned no enabled actions."
-                : selected is null
-                    ? $"{options.Length} actions. Choose the one from the setup guide."
-                    : $"{selected} — enabled in CSP.");
+            _availableActionChoices = choices;
+            _showAllActionChoices = false;
+            PresentActionChoices();
         }
         catch (OperationCanceledException) when (_windowLifetime.IsCancellationRequested)
         {
@@ -1280,6 +1253,72 @@ public partial class MainWindow : Window
         {
             RefreshActionsButton.IsEnabled = true;
         }
+    }
+
+    private void ShowAllActionsButton_Click(object sender, RoutedEventArgs e)
+    {
+        _showAllActionChoices = !_showAllActionChoices;
+        PresentActionChoices();
+    }
+
+    private void PresentActionChoices()
+    {
+        var selectedIdentity = SelectedActionIdentity();
+        var visibleChoices = QuickAccessActionMatcher.VisibleChoices(
+            _availableActionChoices,
+            selectedIdentity,
+            _showAllActionChoices);
+        var options = visibleChoices
+            .Select(choice => new QuickAccessActionOption(choice))
+            .ToArray();
+        var selected = selectedIdentity is null
+            ? null
+            : options.FirstOrDefault(option =>
+                string.Equals(
+                    option.Choice.Identity.CommandType,
+                    selectedIdentity.CommandType,
+                    StringComparison.Ordinal) &&
+                string.Equals(
+                    option.Choice.Identity.CommandName,
+                    selectedIdentity.CommandName,
+                    StringComparison.Ordinal));
+        var recommendedCount =
+            QuickAccessActionMatcher.RecommendedCount(_availableActionChoices);
+        var isFiltered =
+            recommendedCount > 0 &&
+            visibleChoices.Count < _availableActionChoices.Count;
+
+        var previousLoading = _loadingSettings;
+        _loadingSettings = true;
+        try
+        {
+            AutoActionPicker.ItemsSource = options;
+            AutoActionPicker.SelectedItem = selected;
+            ShowAllActionsButton.Visibility =
+                recommendedCount > 0 &&
+                _availableActionChoices.Count > recommendedCount
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
+            ShowAllActionsButton.Content = _showAllActionChoices
+                ? "Show recommended"
+                : $"Show all ({_availableActionChoices.Count})";
+        }
+        finally
+        {
+            _loadingSettings = previousLoading;
+        }
+
+        SetActionStatus(_availableActionChoices.Count == 0
+            ? "CSP returned no enabled actions."
+            : recommendedCount == 0
+                ? $"{_availableActionChoices.Count} commands. No recommended match found."
+                : selected is not null
+                    ? isFiltered
+                        ? $"{selected} — showing recommended actions."
+                        : $"{selected} — enabled in CSP."
+                    : isFiltered
+                        ? $"Showing {visibleChoices.Count} recommended of {_availableActionChoices.Count} commands."
+                        : $"{_availableActionChoices.Count} commands. Choose the action from the setup guide.");
     }
 
     private async void AutoActionPicker_SelectionChanged(

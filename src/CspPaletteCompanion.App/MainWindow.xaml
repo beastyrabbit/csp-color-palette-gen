@@ -795,6 +795,7 @@
                            Text="Use the action from the setup guide &#8212; CSP does not expose an action&#8217;s recorded steps."/>
                 <ComboBox x:Name="AutoActionPicker"
                           Margin="0,8,0,0"
+                          MaxDropDownHeight="240"
                           SelectionChanged="AutoActionPicker_SelectionChanged"
                           AutomationProperties.Name="CSP Quick Access action"/>
                 <Grid Margin="0,8,0,0">
@@ -803,6 +804,7 @@
                     <ColumnDefinition Width="8"/>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
                   </Grid.ColumnDefinitions>
                   <Button x:Name="RefreshActionsButton"
                           Grid.Column="0"
@@ -817,6 +819,13 @@
                           MinWidth="96"
                           Click="SetupGuideButton_Click"
                           Content="Setup guide"/>
+                  <Button x:Name="ShowAllActionsButton"
+                          Grid.Column="4"
+                          Style="{StaticResource CompactButtonStyle}"
+                          MinWidth="92"
+                          Click="ShowAllActionsButton_Click"
+                          Content="Show all"
+                          Visibility="Collapsed"/>
                 </Grid>
                 <TextBlock x:Name="ActionStatusText"
                            Style="{StaticResource CaptionTextStyle}"
