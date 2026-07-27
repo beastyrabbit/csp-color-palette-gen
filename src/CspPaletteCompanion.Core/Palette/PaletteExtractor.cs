@@ -362,22 +362,18 @@ public sealed class PaletteExtractor
         var centers = new Center[k];
         centers[0] = Center.FromPixel(pixels[random.NextIndex(pixels.Length)]);
         var minimumSquaredDistances = new double[pixels.Length];
+        for (var pointIndex = 0; pointIndex < pixels.Length; pointIndex++)
+        {
+            minimumSquaredDistances[pointIndex] =
+                SquaredDistance(pixels[pointIndex], centers[0]);
+        }
 
         for (var centerIndex = 1; centerIndex < k; centerIndex++)
         {
             var totalWeight = 0d;
             for (var pointIndex = 0; pointIndex < pixels.Length; pointIndex++)
             {
-                var distance = SquaredDistance(pixels[pointIndex], centers[0]);
-                for (var existingIndex = 1; existingIndex < centerIndex; existingIndex++)
-                {
-                    distance = Math.Min(
-                        distance,
-                        SquaredDistance(pixels[pointIndex], centers[existingIndex]));
-                }
-
-                minimumSquaredDistances[pointIndex] = distance;
-                totalWeight += distance;
+                totalWeight += minimumSquaredDistances[pointIndex];
             }
 
             if (totalWeight <= 0)
@@ -386,23 +382,34 @@ public sealed class PaletteExtractor
                     pixels.First(pixel => centers
                         .Take(centerIndex)
                         .All(center => center.ToRgbColor() != pixel.ToRgbColor())));
-                continue;
+            }
+            else
+            {
+                var target = random.NextDouble() * totalWeight;
+                var cumulative = 0d;
+                var selectedIndex = pixels.Length - 1;
+                for (var pointIndex = 0; pointIndex < pixels.Length; pointIndex++)
+                {
+                    cumulative += minimumSquaredDistances[pointIndex];
+                    if (cumulative > target)
+                    {
+                        selectedIndex = pointIndex;
+                        break;
+                    }
+                }
+
+                centers[centerIndex] = Center.FromPixel(pixels[selectedIndex]);
             }
 
-            var target = random.NextDouble() * totalWeight;
-            var cumulative = 0d;
-            var selectedIndex = pixels.Length - 1;
+            // Standard k-means++ only needs the distance to the newly selected
+            // center. Keeping the running minimum changes initialization from
+            // O(points × k²) to O(points × k).
             for (var pointIndex = 0; pointIndex < pixels.Length; pointIndex++)
             {
-                cumulative += minimumSquaredDistances[pointIndex];
-                if (cumulative > target)
-                {
-                    selectedIndex = pointIndex;
-                    break;
-                }
+                minimumSquaredDistances[pointIndex] = Math.Min(
+                    minimumSquaredDistances[pointIndex],
+                    SquaredDistance(pixels[pointIndex], centers[centerIndex]));
             }
-
-            centers[centerIndex] = Center.FromPixel(pixels[selectedIndex]);
         }
 
         return centers;

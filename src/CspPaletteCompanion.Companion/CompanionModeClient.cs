@@ -65,10 +65,11 @@ public sealed class CompanionModeClient : IAsyncDisposable
         foreach (var address in pairing.Addresses)
         {
             var tcpClient = new TcpClient(address.AddressFamily);
+            CompanionModeClient? client = null;
             try
             {
                 await tcpClient.ConnectAsync(address, pairing.Port, cancellationToken).ConfigureAwait(false);
-                var client = new CompanionModeClient(
+                client = new CompanionModeClient(
                     tcpClient.GetStream(),
                     tcpClient,
                     TimeSpan.FromSeconds(1),
@@ -83,11 +84,11 @@ public sealed class CompanionModeClient : IAsyncDisposable
             catch (Exception ex) when (ex is SocketException or IOException)
             {
                 lastError = ex;
-                tcpClient.Dispose();
+                await DisposeFailedConnectionAsync(client, tcpClient).ConfigureAwait(false);
             }
             catch
             {
-                tcpClient.Dispose();
+                await DisposeFailedConnectionAsync(client, tcpClient).ConfigureAwait(false);
                 throw;
             }
         }
@@ -191,7 +192,6 @@ public sealed class CompanionModeClient : IAsyncDisposable
             using var timeout = new CancellationTokenSource(DefaultRequestTimeout);
             using var linked = CancellationTokenSource.CreateLinkedTokenSource(
                 cancellationToken,
-                lifetimeCancellation.Token,
                 timeout.Token);
             return await completion.Task.WaitAsync(linked.Token).ConfigureAwait(false);
         }
@@ -423,7 +423,7 @@ public sealed class CompanionModeClient : IAsyncDisposable
                 if (frame.Type == CompanionFrameType.Command)
                 {
                     await AcknowledgeServerPushAsync(frame, cancellationToken).ConfigureAwait(false);
-                    ServerPushReceived?.Invoke(this, new CompanionServerPushEventArgs(frame));
+                    RaiseServerPushReceived(frame);
                 }
                 else if (pending.TryGetValue(frame.Serial, out var completion))
                 {
@@ -431,11 +431,40 @@ public sealed class CompanionModeClient : IAsyncDisposable
                 }
             }
         }
-        catch (Exception ex) when (ex is IOException or EndOfStreamException or OperationCanceledException)
+        catch (Exception ex) when (
+            ex is IOException
+                or EndOfStreamException
+                or InvalidDataException
+                or ObjectDisposedException
+                or OperationCanceledException)
         {
             if (!cancellationToken.IsCancellationRequested)
             {
                 MarkDisconnected(ex);
+            }
+        }
+    }
+
+    private void RaiseServerPushReceived(CompanionFrame frame)
+    {
+        var handlers = ServerPushReceived;
+        if (handlers is null)
+        {
+            return;
+        }
+
+        var arguments = new CompanionServerPushEventArgs(frame);
+        foreach (EventHandler<CompanionServerPushEventArgs> handler in handlers.GetInvocationList())
+        {
+            try
+            {
+                handler(this, arguments);
+            }
+            catch (Exception exception) when (
+                exception is not OutOfMemoryException and not AccessViolationException)
+            {
+                // A consumer callback must not stop frame processing for every
+                // outstanding and future protocol request.
             }
         }
     }
@@ -493,6 +522,29 @@ public sealed class CompanionModeClient : IAsyncDisposable
         foreach (var completion in pending.Values)
         {
             completion.TrySetException(exception);
+        }
+
+        lifetimeCancellation.Cancel();
+    }
+
+    private static async Task DisposeFailedConnectionAsync(
+        CompanionModeClient? client,
+        TcpClient tcpClient)
+    {
+        if (client is null)
+        {
+            tcpClient.Dispose();
+            return;
+        }
+
+        try
+        {
+            await client.DisposeAsync().ConfigureAwait(false);
+        }
+        catch (Exception exception) when (
+            exception is IOException or ObjectDisposedException or OperationCanceledException)
+        {
+            tcpClient.Dispose();
         }
     }
 

@@ -207,50 +207,47 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
                 : "CSP copied nothing. Check the active layer has visible pixels.");
         }
 
-        ClipboardImage? image = null;
-        var definitelyIneligible = false;
-        var imageDeadline = DateTime.UtcNow.AddSeconds(1);
-        while (DateTime.UtcNow < imageDeadline &&
-               image is null &&
-               !definitelyIneligible)
-        {
-            try
+        var (postCopyResult, restored) = await RunWithGuaranteedRestoreAsync(
+            async () =>
             {
-                var read = _clipboard.Read();
-                image = read.Image;
-                definitelyIneligible = read.IsDefinitelyIneligible;
-            }
-            catch (COMException)
-            {
-            }
+                ClipboardImage? image = null;
+                var definitelyIneligible = false;
+                var imageDeadline = DateTime.UtcNow.AddSeconds(1);
+                while (DateTime.UtcNow < imageDeadline &&
+                       image is null &&
+                       !definitelyIneligible)
+                {
+                    try
+                    {
+                        var read = _clipboard.Read();
+                        image = read.Image;
+                        definitelyIneligible = read.IsDefinitelyIneligible;
+                    }
+                    catch (COMException)
+                    {
+                    }
 
-            if (image is null)
-            {
-                await Task.Delay(50, cancellationToken);
-            }
-        }
+                    if (image is null)
+                    {
+                        await Task.Delay(50, cancellationToken);
+                    }
+                }
 
-        var restored = snapshot.TryRestore(copiedSequence);
-        if (definitelyIneligible)
-        {
-            return AcquisitionResult.Fail(isSelection
-                ? "No opaque mid-range pixels after filtering."
-                : "No opaque mid-range pixels after filtering.");
-        }
+                if (definitelyIneligible)
+                {
+                    return AcquisitionResult.Fail(
+                        "No opaque mid-range pixels after filtering.");
+                }
 
-        if (image is null)
-        {
-            return AcquisitionResult.Fail(isSelection
-                ? "Nothing copied. Create a selection in Clip Studio Paint."
-                : "The active layer produced no clipboard image.");
-        }
+                return image is null
+                    ? AcquisitionResult.Fail(isSelection
+                        ? "Nothing copied. Create a selection in Clip Studio Paint."
+                        : "The active layer produced no clipboard image.")
+                    : ValidateDimensions(image, session, source);
+            },
+            () => snapshot.TryRestore(copiedSequence));
 
-        var validated = ValidateDimensions(image, session, source);
-        return validated with
-        {
-            ClipboardRestored = restored,
-            Notice = validated.Notice,
-        };
+        return postCopyResult with { ClipboardRestored = restored };
     }
 
     private static AcquisitionResult ValidateDimensions(
@@ -320,48 +317,75 @@ internal sealed class CspAcquisitionService : IAsyncDisposable
                 "Check the selection overlaps visible artwork.");
         }
 
-        ClipboardImage? image = null;
-        var definitelyIneligible = false;
-        var imageDeadline = DateTime.UtcNow.AddSeconds(1);
-        while (DateTime.UtcNow < imageDeadline &&
-               image is null &&
-               !definitelyIneligible)
-        {
-            try
+        var (postCopyResult, restored) = await RunWithGuaranteedRestoreAsync(
+            async () =>
             {
-                var read = _clipboard.Read();
-                image = read.Image;
-                definitelyIneligible = read.IsDefinitelyIneligible;
-            }
-            catch (COMException)
-            {
-            }
+                ClipboardImage? image = null;
+                var definitelyIneligible = false;
+                var imageDeadline = DateTime.UtcNow.AddSeconds(1);
+                while (DateTime.UtcNow < imageDeadline &&
+                       image is null &&
+                       !definitelyIneligible)
+                {
+                    try
+                    {
+                        var read = _clipboard.Read();
+                        image = read.Image;
+                        definitelyIneligible = read.IsDefinitelyIneligible;
+                    }
+                    catch (COMException)
+                    {
+                    }
 
-            if (image is null)
-            {
-                await Task.Delay(50, cancellationToken);
-            }
-        }
+                    if (image is null)
+                    {
+                        await Task.Delay(50, cancellationToken);
+                    }
+                }
 
-        var restored = snapshot.TryRestore(copiedSequence);
-        if (definitelyIneligible)
-        {
-            return AcquisitionResult.Fail(
-                "No opaque mid-range pixels after filtering.");
-        }
+                if (definitelyIneligible)
+                {
+                    return AcquisitionResult.Fail(
+                        "No opaque mid-range pixels after filtering.");
+                }
 
-        if (image is null)
-        {
-            return AcquisitionResult.Fail(
-                $"CSP ran “{actionName}” and produced no image.");
-        }
+                return image is null
+                    ? AcquisitionResult.Fail(
+                        $"CSP ran “{actionName}” and produced no image.")
+                    : ValidateDimensions(image, session, SourceIntent.SelectionCanvas);
+            },
+            () => snapshot.TryRestore(copiedSequence));
 
-        var validated = ValidateDimensions(image, session, SourceIntent.SelectionCanvas);
-        return validated with
+        return postCopyResult with
         {
             ClipboardRestored = restored,
             Notice = null,
         };
+    }
+
+    /// <summary>
+    /// Runs work that consumes an application-owned clipboard payload and guarantees
+    /// that restoration is attempted even when the work fails or is cancelled.
+    /// </summary>
+    internal static async Task<(T Result, bool Restored)> RunWithGuaranteedRestoreAsync<T>(
+        Func<Task<T>> operation,
+        Func<bool> restore)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(restore);
+
+        T result;
+        bool restored;
+        try
+        {
+            result = await operation();
+        }
+        finally
+        {
+            restored = restore();
+        }
+
+        return (result, restored);
     }
 
     private static bool SendCopyShortcut()

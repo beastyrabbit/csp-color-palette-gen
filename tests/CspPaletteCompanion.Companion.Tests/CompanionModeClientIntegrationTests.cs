@@ -31,6 +31,8 @@ public sealed class CompanionModeClientIntegrationTests
         await using var client = await CompanionModeClient.ConnectAndAuthenticateAsync(pairing, timeout.Token);
         var pushReceived = new TaskCompletionSource<CompanionFrame>(
             TaskCreationOptions.RunContinuationsAsynchronously);
+        client.ServerPushReceived += (_, _) =>
+            throw new InvalidOperationException("A consumer callback must not stop the receive loop.");
         client.ServerPushReceived += (_, args) => pushReceived.TrySetResult(args.Frame);
 
         var assembler = new WebtoonCanvasAssembler(client);
@@ -50,6 +52,67 @@ public sealed class CompanionModeClientIntegrationTests
         await pushAcknowledged.Task.WaitAsync(timeout.Token);
         await serverTask.WaitAsync(timeout.Token);
         listener.Stop();
+    }
+
+    [Fact]
+    public async Task MalformedFrameMarksAnAuthenticatedClientDisconnected()
+    {
+        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(8));
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+        var endpoint = Assert.IsType<IPEndPoint>(listener.LocalEndpoint);
+        var releaseMalformedFrame = new TaskCompletionSource(
+            TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var serverTask = Task.Run(async () =>
+        {
+            using var tcp = await listener.AcceptTcpClientAsync(timeout.Token);
+            await using var stream = tcp.GetStream();
+            var authentication = await CompanionFrameCodec.ReadAsync(
+                stream,
+                cancellationToken: timeout.Token);
+            await WriteAsync(
+                stream,
+                CompanionFrameType.Success,
+                authentication,
+                """{"AuthErrorReason":"Unknown"}"""u8.ToArray(),
+                cancellationToken: timeout.Token);
+
+            await releaseMalformedFrame.Task.WaitAsync(timeout.Token);
+            var malformed = CompanionFrameCodec.EncodeRaw(
+                CompanionFrameType.Success,
+                "Malformed",
+                99,
+                "not-json"u8);
+            await stream.WriteAsync(malformed, timeout.Token);
+            await stream.FlushAsync(timeout.Token);
+        }, timeout.Token);
+
+        try
+        {
+            var pairing = new CompanionPairingInfo(
+                [IPAddress.Loopback],
+                checked((ushort)endpoint.Port),
+                "pairing-password",
+                "G#1:2026");
+            await using var client = await CompanionModeClient.ConnectAndAuthenticateAsync(
+                pairing,
+                timeout.Token);
+            Assert.True(client.IsAuthenticated);
+
+            releaseMalformedFrame.SetResult();
+            while (client.IsAuthenticated)
+            {
+                await Task.Delay(20, timeout.Token);
+            }
+
+            Assert.False(client.IsAuthenticated);
+            await serverTask.WaitAsync(timeout.Token);
+        }
+        finally
+        {
+            listener.Stop();
+        }
     }
 
     private static async Task RunFakeHostAsync(

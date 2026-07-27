@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -8,10 +9,30 @@ internal sealed partial class CspLocator
 {
     internal CspSession? Find()
     {
-        return Process.GetProcessesByName("CLIPStudioPaint")
-            .OrderByDescending(process => process.StartTime)
-            .Select(FindForProcess)
-            .OfType<CspSession>()
+        var candidates = new List<(DateTime StartTime, CspSession Session)>();
+        foreach (var process in Process.GetProcessesByName("CLIPStudioPaint"))
+        {
+            using (process)
+            {
+                try
+                {
+                    var startTime = process.StartTime;
+                    if (FindForProcess(process) is { } session)
+                    {
+                        candidates.Add((startTime, session));
+                    }
+                }
+                catch (Exception exception) when (IsTransientProcessFailure(exception))
+                {
+                    // CSP can close between enumeration and any property access.
+                    // Treat that process as gone; the next poll will enumerate afresh.
+                }
+            }
+        }
+
+        return candidates
+            .OrderByDescending(candidate => candidate.StartTime)
+            .Select(candidate => candidate.Session)
             .FirstOrDefault();
     }
 
@@ -83,13 +104,20 @@ internal sealed partial class CspLocator
         }
     }
 
-    private static (int Width, int Height)? ParseCanvasSize(string title)
+    internal static (int Width, int Height)? ParseCanvasSize(string title)
     {
         var match = CanvasSizeRegex().Match(title);
-        return match.Success
-            ? (int.Parse(match.Groups[1].Value), int.Parse(match.Groups[2].Value))
+        return match.Success &&
+               int.TryParse(match.Groups[1].Value, out var width) &&
+               int.TryParse(match.Groups[2].Value, out var height)
+            ? (width, height)
             : null;
     }
+
+    private static bool IsTransientProcessFailure(Exception exception) =>
+        exception is InvalidOperationException
+            or Win32Exception
+            or NotSupportedException;
 
     [GeneratedRegex(@"(\d+)\s*[x×]\s*(\d+)\s*px", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant)]
     private static partial Regex CanvasSizeRegex();

@@ -15,7 +15,7 @@ no installer.
 | File | Size | Needs |
 | --- | --- | --- |
 | `…-needs-dotnet8.exe` | 2.4 MiB | [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
-| `…-standalone.exe` | 68.7 MiB | nothing |
+| `…-standalone.exe` | 68.8 MiB | nothing |
 
 Take the small one unless you would rather skip the runtime. Antivirus flagged
 it? See [Installation](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki/Installation).

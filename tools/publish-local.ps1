@@ -11,8 +11,12 @@
             Framework-dependent, single file. Requires the .NET 8 Desktop Runtime.
         CSP-Palette-Companion-<version>-win-x64-standalone.exe
             Self-contained, single file, compressed. No prerequisites.
+        CSP_Palette_Companion.laf
+            Importable CSP Auto Action set for merged selection capture.
+        CSP_Palette_Companion_AutoAction.zip
+            Auto Action set, illustrated guide, and layered sample artwork.
         THIRD-PARTY-NOTICES.md
-        SHA256SUMS.txt          sha256sum format, covers the three files above
+        SHA256SUMS.txt          sha256sum format, covers every shipped file above
         release-body.md         the release description (not an asset)
 
     Trimming and NativeAOT are not options here: the app references WinForms (NotifyIcon,
@@ -52,6 +56,8 @@ function Format-Size([string] $name) {
 $repoRoot   = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $project    = Join-Path $repoRoot 'src/CspPaletteCompanion.App/CspPaletteCompanion.App.csproj'
 $notices    = Join-Path $repoRoot 'THIRD-PARTY-NOTICES.md'
+$actionSet  = Join-Path $repoRoot 'docs/assets/CSP_Palette_Companion.laf'
+$actionPack = Join-Path $repoRoot 'docs/assets/CSP_Palette_Companion_AutoAction.zip'
 $builtExe   = 'CSP Palette Companion.exe'
 $stem       = 'CSP-Palette-Companion'
 
@@ -124,6 +130,12 @@ foreach ($b in $builds) {
     $assets += $b.Name
 }
 
+foreach ($source in @($actionSet, $actionPack)) {
+    $name = Split-Path $source -Leaf
+    Copy-Item $source (Join-Path $out $name) -Force
+    $assets += $name
+}
+
 Copy-Item $notices (Join-Path $out 'THIRD-PARTY-NOTICES.md') -Force
 $assets += 'THIRD-PARTY-NOTICES.md'
 
@@ -140,17 +152,63 @@ Write-Text (Join-Path $out 'SHA256SUMS.txt') (($lines -join "`n") + "`n")
 # ---- release body ----------------------------------------------------------------------
 $small = $assets[0]
 $big   = $assets[1]
-$avUrl = "$RepoUrl/src/tag/$Tag/README.md#antivirus"
+$autoAction = Split-Path $actionSet -Leaf
+$autoActionPack = Split-Path $actionPack -Leaf
+$guideUrl = "$RepoUrl/src/tag/$Tag/docs/selection-canvas-setup.md"
+$installUrl = "$RepoUrl/wiki/Installation"
 
 $body = @"
-Windows 10 or 11, 64-bit.
+The first public release of **CSP Palette Companion** turns artwork in CLIP STUDIO
+PAINT into a ready-to-import Color Set. It extracts a balanced set of major colors
+and distinctive accents, then writes a named Adobe Color Swatch file that can be
+dragged straight onto CSP's Color Set palette.
+
+## Highlights
+
+- Capture the complete canvas through CSP Companion Mode without touching the clipboard.
+- Extract from the active layer or a bounded selection.
+- Generate deterministic major and minor colors with transparent, near-black, and
+  near-white pixels filtered out.
+- Click a generated swatch to set CSP's current drawing color.
+- Drag the finished ``.aco`` file directly from the app into CSP.
+- Connect through CSP Mux when it is available.
+- Run in the notification area with explicit permissions for canvas, clipboard,
+  and Auto Action access.
+- Import the included Auto Action for merged, multi-layer selection capture:
+  [setup guide]($guideUrl).
+
+## Downloads
+
+Windows 10 or 11, 64-bit. CLIP STUDIO PAINT PRO or EX.
 
 | Download | Size | You need |
 | --- | --- | --- |
 | ``$small`` | $(Format-Size $small) | the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
 | ``$big`` | $(Format-Size $big) | nothing |
 
-Take the small one unless you would rather not install the runtime. Both are the same app.
+Choose the smaller download if the .NET 8 Desktop Runtime is already installed.
+Both downloads contain the same application and require no installer.
+
+### Optional Auto Action
+
+| Download | Includes |
+| --- | --- |
+| ``$autoAction`` | Importable CSP Auto Action set |
+| ``$autoActionPack`` | Auto Action set, illustrated guide, and layered sample artwork |
+
+The Auto Action is needed only for merged **Selection · Canvas** capture across
+multiple layers. Layer and full-canvas extraction work without it.
+
+## Quick start
+
+1. Open artwork in CSP.
+2. In CSP, open **File → Connect to smartphone** and leave its QR code visible.
+3. Start CSP Palette Companion and select **Connect**.
+4. Choose a source and the number of major/minor colors.
+5. Select **Extract palette**.
+6. Drag **Drop onto CSP Color Set** onto CSP's Color Set palette.
+
+## Integrity and antivirus
 
 ``SHA256SUMS.txt`` holds the SHA-256 of each file. To check one:
 
@@ -158,9 +216,12 @@ Take the small one unless you would rather not install the runtime. Both are the
 Get-FileHash "$big" -Algorithm SHA256
 ``````
 
-Antivirus may flag either download. Both are unsigned single-file bundles that unpack
-themselves at launch, and heuristic scanners score that as suspicious. The small build
-trips it less often. [What to do about it]($avUrl)
+These executables are currently unsigned single-file bundles. Some antivirus products
+may flag that packaging style heuristically. Verify the SHA-256 checksum and see the
+[installation notes]($installUrl) if Windows or antivirus software blocks the download.
+
+Thank you for trying the first release. Bug reports and palette-quality examples are
+welcome in the repository's issue tracker.
 "@
 
 Write-Text (Join-Path $out 'release-body.md') ($body -replace "`r`n", "`n")
