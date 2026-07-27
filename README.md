@@ -1,63 +1,209 @@
 # CSP Palette Companion
 
-A small Windows companion for Clip Studio Paint PRO/EX. It reads pixels from
-CSP or the Windows clipboard, extracts a deterministic major/minor palette, and
-writes a named Adobe Color Swatch (`.aco`) file that CSP can import as a new
-Color Set.
+Pulls the colors out of your Clip Studio Paint canvas and hands you back a Color
+Set you can drag straight into CSP. Twelve swatches from a finished painting in
+about a fifth of a second.
 
-## Current workflow
+![CSP Palette Companion after extracting a palette: twelve swatches and the drag chip](docs/assets/companion-result.png)
 
-1. Open a document in Clip Studio Paint.
-2. Run `CSP Palette Companion.exe`.
-3. For direct Canvas access, select CSP's **Connect to smartphone** command so
-   its QR code is visible, then select **Connect** in Palette Companion. The app
-   keeps scanning until it connects or you select **Stop**.
-4. Choose a source and the major/minor counts.
-5. Select **Extract Palette**.
-6. Drag the green **Add** card onto CSP's Color Set palette. CSP imports the ACO
-   as a new Color Set.
+Windows 10 or 11, 64-bit. Clip Studio Paint PRO or EX.
 
-The generated ACO remains available under:
+## Download
 
-```text
-%LOCALAPPDATA%\CSP Palette Companion\Palettes
+From the [releases page](https://git.heerlab.com/beasty/csp-color-palette-gen/releases).
+
+| File | Size | You need |
+| --- | --- | --- |
+| `CSP-Palette-Companion-<version>-win-x64-needs-dotnet8.exe` | 2.4 MB | the [.NET 8 Desktop Runtime](https://dotnet.microsoft.com/download/dotnet/8.0) |
+| `CSP-Palette-Companion-<version>-win-x64-standalone.exe` | 68.7 MB | nothing |
+
+Same app, both files. Take the small one unless you would rather not install a
+runtime. No installer either way — put the `.exe` where you want it and run it.
+
+If your antivirus complains, see [Antivirus](#antivirus).
+
+## How to use it
+
+1. **Open your artwork in Clip Studio Paint.**
+
+2. **In CSP, turn on Companion Mode.** `File > Connect to smartphone`
+   (German: `Datei > Mit Smartphone verbinden...`). A window with a QR code
+   appears — leave it open.
+
+   This menu item is a toggle with a checkmark, not a dialog. Choosing it again
+   while it is already on switches Companion Mode **off**.
+
+3. **Start CSP Palette Companion and select `Connect`.** It looks for the QR
+   code on screen and keeps looking until it connects or you select `Stop`. The
+   dot next to the title turns green and reads `Connected`.
+
+4. **Pick a source and your counts.** `Canvas` is the whole visible image and
+   needs no setup. See [Sources](#sources) for the other three. Major and minor
+   default to 6 and 6.
+
+5. **Select `Extract palette`.** The swatches appear, and the file is written to
+   `%LOCALAPPDATA%\CSP Palette Companion\Palettes`. `Show file` opens the
+   folder.
+
+6. **Drag the green `Drop onto CSP Color Set` bar onto CSP's Color Set palette.**
+   That is the whole handoff — CSP imports it as a new Color Set. Drag the bar
+   itself, not a swatch.
+
+The app does not click through CSP's menus to import for you. CSP's palette
+controls are custom-drawn and localized; the drag is the handoff that keeps
+working.
+
+## Sources
+
+![Settings, showing the capture toggles](docs/assets/companion-settings.png)
+
+| Source | What it reads | What it needs |
+| --- | --- | --- |
+| **Canvas** | The whole visible canvas | Companion canvas capture (on by default) and a live connection |
+| **Layer** | The active layer | Clipboard capture. Deselect in CSP first |
+| **Selection · Canvas** | Everything visible inside your selection | Clipboard capture, Run selected CSP Auto Action, and [an Auto Action you build](docs/selection-canvas-setup.md) |
+| **Selection · Layer** | Selected pixels on the active layer | Clipboard capture and an active selection |
+
+`Layer` stops if what it copied is not the size of the canvas — that means
+something was still selected. `Selection · Layer` refuses a full-canvas result
+for the same reason in reverse. CSP cannot be asked whether a selection exists,
+so these guards are how the app avoids handing you a palette of the wrong thing.
+
+`Selection · Canvas` is the only source that needs setup, because CSP will run a
+command from Quick Access but will not tell an app what that command actually
+does. You record a three-step Auto Action yourself and point the app at it. The
+app checks that the exact command is still there before each run, but it cannot
+see the steps inside it — if you point it at a different action, it will run
+that instead. Build it from the [setup guide](docs/selection-canvas-setup.md)
+and test it on a scrap document.
+
+## How the palette is made
+
+Your picture gets shrunk down small. Pixels that are nearly see-through, nearly
+black or nearly white are thrown away — they are not colors you would paint
+with. Every fifth pixel that survives goes into a bucket with the pixels that
+look most like it. Each bucket gets averaged, and that average is one swatch.
+
+Then the buckets get split two ways:
+
+- **Major colors** are the biggest buckets — the colors that cover the most
+  picture.
+- **Minor colors** are the odd ones out — small patches that are too different
+  from everything else to be ignored.
+
+Here is the test image — 1600x1000, six major and six minor, 220 ms:
+
+![The sample artwork: a sunset over a ridge and water, with a few tiny colored dots](docs/assets/sample-artwork.png)
+
+**Major** — the big stuff. Sky, ridge, water, sun.
+
+| | | | | | |
+| --- | --- | --- | --- | --- | --- |
+| `#1A2535` | `#48334D` | `#3D4B65` | `#804C58` | `#B26367` | `#F4B66E` |
+| deep sky | purple ridge | sky over ridge | dusk | water | sun |
+
+**Minor** — the odd ones out.
+
+| | | | | | |
+| --- | --- | --- | --- | --- | --- |
+| `#EC6CA8` | `#77DAE6` | `#276060` | `#674153` | `#252346` | `#4A3F68` |
+| pink dots | cyan dot | green hill | ridge edge | night sky | ridge shadow |
+
+Look at the picture again. The cyan dot up on the left and the five pink dots
+down in the shadow are together well under one percent of it. If you only asked
+for the biggest colors they would never show up — they would be swallowed by the
+sky. They are the two colors an artist would actually want to know about.
+
+Small and distinct beats large and dull. That is what the minor half is for.
+
+The same picture always gives the same palette. Run it twice, get the same
+twelve colors.
+
+### The technical version
+
+- Downscales to 1200 px on the long side, never upscales.
+- Drops alpha < 128, near-black and near-white pixels; samples every 5th
+  survivor.
+- Deterministically seeded k-means++, max 20 iterations. Major colors ordered by
+  cluster population.
+- Minor colors are brightness-ordered candidates selected by RGB distance
+  thresholds, so small distinct clusters are not crowded out by large ones.
+- Duplicates removed; the app reports when fewer distinct colors exist than you
+  asked for.
+- Output is RGB ACO v1 plus a named UTF-16BE ACO v2 section.
+
+## CSP Mux
+
+Clip Studio Paint accepts exactly **one** Companion Mode connection. Connect
+this app and nothing else can connect. [CSP Mux](https://git.heerlab.com/beasty/csp-app-multiplexer)
+takes that one connection and re-shares it, so several tools can talk to CSP at
+the same time.
+
+![CSP Mux sharing its connection, with the proxy QR code visible](docs/assets/mux-sharing.png)
+
+Turn on **Use CSP Mux when it is running** in Settings. The Companion then reads
+the Mux handoff file and connects through the proxy instead of scanning CSP's
+QR code, and its status reads `Ready · through CSP Mux`.
+
+## Antivirus
+
+Both downloads may get flagged. Here is why, and what to do.
+
+**Why.** They are single-file bundles: the whole app is packed into one `.exe`
+that unpacks itself into a temp folder when you launch it. Heuristic scanners
+score self-extracting behavior as suspicious on its own. The builds are also
+unsigned — code signing certificates cost money this project does not have.
+Nothing about the flag is specific to this app; it is the packaging.
+
+**What helps.** The 2.4 MB framework-dependent build trips scanners less often
+than the 68.7 MB standalone one, because there is far less packed inside it.
+
+**Check the file first.** Every release ships `SHA256SUMS.txt`. Compare:
+
+```powershell
+Get-FileHash "CSP-Palette-Companion-1.0.0-win-x64-standalone.exe" -Algorithm SHA256
 ```
 
-### Source behavior
+against the line for that filename. If it matches, the file is the one that was
+built and published. If it does not, delete it and download again.
 
-- **Canvas** reads the flattened local preview after the explicit Companion
-  connection is established. Pairing endpoints are limited to
-  loopback/private-network addresses and the pairing secret is not saved. If
-  Companion Mode is disconnected, an already-prepared merged clipboard image is
-  used immediately as the fallback; Extract never starts a hidden QR scan.
-- **Layer** focuses CSP and sends its default Copy shortcut. Deselect in CSP
-  first. If the copied bitmap does not match known canvas dimensions, the app
-  treats it as a cropped result and stops.
-- **Selection** focuses CSP and copies pixels from the active/selected layers
-  inside the current selection. It is deliberately labeled as active-layer
-  compatibility behavior, not a merged visible selection. A full-canvas copy is
-  rejected because CSP offers no supported active-selection query. A layer whose
-  content bounds are smaller than the canvas can still produce a cropped copy
-  without a selection, so confirm a bounded selection is active before running.
+**Add an exclusion** (Microsoft Defender): Windows Security > Virus & threat
+protection > Manage settings > Exclusions > Add an exclusion > File, and pick
+the `.exe`. Other scanners have the same setting under a different name. Only do
+this after the hash checks out.
 
-The app does not edit CSP private files or databases. Import automation is not
-performed by coordinates because CSP palette controls are custom-rendered and
-localized. The draggable ACO is the stable handoff.
+## What it can read
 
-## Palette behavior
+Every capability is a toggle in Settings. Anything that reaches past a read-only
+canvas is off until you turn it on.
 
-- Downscales sources to a maximum dimension of 1200 px without upscaling.
-- Ignores alpha below 128, near-black, and near-white pixels.
-- Samples every fifth eligible pixel.
-- Uses deterministically seeded k-means++ with at most 20 iterations.
-- Orders major colors by population.
-- Selects brightness-ordered minor candidates using RGB distance thresholds.
-- Removes duplicates and reports when fewer distinct colors exist.
-- Writes RGB ACO v1 and named UTF-16BE ACO v2 sections.
+| Toggle | Default | What it allows |
+| --- | --- | --- |
+| Companion canvas capture | **On** | Read-only canvas pixels over the Companion connection |
+| Clipboard capture | **Off** | Copying pixels through the Windows clipboard |
+| Run selected CSP Auto Action | **Off** | Running the one Quick Access command you selected |
+| Use CSP Mux when it is running | **Off** | Reading the Mux handoff file to connect through the proxy |
+| System tray | **On** | Close hides the window; Exit lives in the tray menu |
 
-## Build and test
+- No internet traffic. The only connection is TCP to the loopback or
+  private-network address decoded from CSP's own QR code. Pairing endpoints are
+  restricted to those ranges and the pairing secret is not saved.
+- Image processing and ACO writing happen on your machine.
+- It writes two things: `settings.json` and the generated `.aco` files, both
+  under `%LOCALAPPDATA%\CSP Palette Companion`. It does not touch CSP's files or
+  databases.
+- Clipboard modes snapshot text, bitmap and file-drop formats and restore them
+  after CSP copies. Clipboard history, cloud clipboard, delayed rendering and
+  private formats cannot be restored generically. A newer clipboard change of
+  yours is never overwritten.
+- Companion Mode is an unofficial, reverse-engineered integration. It may need
+  updating if CSP changes its wire protocol.
 
-Prerequisite: .NET 8 SDK.
+Verified against native Windows CSP PRO 4.0.10, German UI.
+
+## Build from source
+
+.NET 8 SDK. Windows only — WPF does not build on Linux.
 
 ```powershell
 dotnet restore CspPaletteCompanion.sln
@@ -65,60 +211,31 @@ dotnet build CspPaletteCompanion.sln -c Release --no-restore
 dotnet test CspPaletteCompanion.sln -c Release --no-build --no-restore
 ```
 
-Create a distributable single executable:
+Both release executables, hashes and notices:
 
 ```powershell
-dotnet publish src/CspPaletteCompanion.App/CspPaletteCompanion.App.csproj `
-  -c Release -r win-x64 --self-contained true `
-  -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true `
-  -o dist/win-x64
+tools\publish-local.ps1 -Version 1.0.0 -Tag v1.0.0
 ```
 
-Generate disposable smoke fixtures and run the 4K benchmark:
+Output lands in `dist\release\`. Trimming and NativeAOT are not options here —
+the app uses WinForms for the tray icon and QR decoding, and the SDK refuses to
+trim WinForms.
 
-```powershell
-dotnet run --project tools/CspPaletteCompanion.SmokeFixture `
-  -c Release -- artifacts/smoke --benchmark
-```
+## Links
 
-## Privacy and clipboard limits
-
-Image processing and ACO generation are local. The only network traffic is the
-direct Companion Mode TCP connection to a private or local CSP address decoded
-from CSP's QR code. The app does not contact an internet service.
-
-For Layer and Selection, it snapshots ordinary text, bitmap, and file drop
-clipboard formats and attempts to restore them after CSP Copy. Windows clipboard
-history, cloud clipboard, delayed rendering, and private formats cannot be
-restored generically; a newer user clipboard change is never overwritten.
-
-## Known limitations
-
-- Tested against native Windows CSP PRO 4.0.10 with a German UI.
-- Companion Mode is an unofficial, reverse-engineered integration and may need
-  updating if CSP changes its private wire protocol.
-- The status indicator is green only for an authenticated Companion connection.
-  A running CSP process by itself is shown as disconnected.
-- Companion Canvas uses CSP's Webtoon Preview representation, whose pixels are
-  opaque and whose available canvases can be ambiguous in multi-page documents.
-  The app fails closed instead of guessing between matching canvases.
-- The app cannot query CSP for active-selection presence. Layer mode therefore
-  requires the user to deselect first and applies a dimension guard.
-- Selection mode is active/selected-layer compatibility mode and deliberately
-  rejects a full-canvas-sized result. CSP can still return smaller active-layer
-  content bounds when no selection exists, which cannot be distinguished safely.
-- The ACO drag handoff remains the supported import path; automatic palette-menu
-  clicking is intentionally omitted.
+- [Wiki](https://git.heerlab.com/beasty/csp-color-palette-gen/wiki)
+- [Issues](https://git.heerlab.com/beasty/csp-color-palette-gen/issues)
+- [Selection · Canvas setup guide](docs/selection-canvas-setup.md)
+- [CSP Mux](https://git.heerlab.com/beasty/csp-app-multiplexer)
 
 ## Third-party components
 
-The Companion Mode implementation follows the MIT-licensed protocol work in
+Companion Mode follows the MIT-licensed protocol work in
 [`chocolatkey/clipremote`](https://github.com/chocolatkey/clipremote). QR
-decoding uses ZXing.Net. See `THIRD-PARTY-NOTICES.md` in the source and
-published output for license details.
+decoding uses ZXing.Net. Full details in
+[`THIRD-PARTY-NOTICES.md`](THIRD-PARTY-NOTICES.md), which ships with every
+build.
 
 ## License
 
-Copyright (C) 2026 beasty.
-
-This project is licensed under the [GNU General Public License v3.0](LICENSE).
+Copyright (C) 2026 beasty. [GNU General Public License v3.0](LICENSE).

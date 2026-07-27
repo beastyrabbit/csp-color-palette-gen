@@ -7,7 +7,7 @@
     <AssemblyName>CSP Palette Companion</AssemblyName>
     <RootNamespace>CspPaletteCompanion.App</RootNamespace>
     <Product>CSP Palette Companion</Product>
-    <Version>0.1.0</Version>
+    <!-- Version lives in Directory.Build.props so the release tag can override it. -->
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\csp-palette-companion.ico</ApplicationIcon>
     <SelfContained>false</SelfContained>
